@@ -1,0 +1,282 @@
+@import "@fontsource/archivo/latin-500.css";
+@import "@fontsource/archivo/latin-600.css";
+@import "@fontsource/archivo/latin-700.css";
+@import "@fontsource/archivo/latin-800.css";
+@import "@fontsource/ibm-plex-sans/latin-400.css";
+@import "@fontsource/ibm-plex-sans/latin-500.css";
+@import "@fontsource/ibm-plex-sans/latin-600.css";
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * RION SPORTS design system — premium industrial workwear manufacturing.
+ * Off-white surfaces, deep navy primary, safety-orange accent, thin borders.
+ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 6px);
+  --radius-3xl: calc(var(--radius) + 10px);
+  --radius-4xl: calc(var(--radius) + 14px);
+
+  --font-display: "Archivo", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-safety: var(--safety);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --shadow-subtle: 0 1px 2px oklch(0.2 0.03 250 / 6%);
+  --shadow-card: 0 12px 32px -18px oklch(0.2 0.03 250 / 28%);
+  --shadow-lift: 0 24px 48px -24px oklch(0.2 0.03 250 / 35%);
+}
+
+:root {
+  --radius: 0.25rem;
+  --background: oklch(0.99 0.002 90);
+  --foreground: oklch(0.19 0.015 260);
+  --surface: oklch(0.965 0.003 90);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.19 0.015 260);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.19 0.015 260);
+  --primary: oklch(0.26 0.045 258);
+  --primary-foreground: oklch(0.98 0.002 90);
+  --secondary: oklch(0.95 0.004 250);
+  --secondary-foreground: oklch(0.26 0.045 258);
+  --muted: oklch(0.955 0.003 250);
+  --muted-foreground: oklch(0.5 0.012 258);
+  --accent: oklch(0.66 0.19 44);
+  --accent-foreground: oklch(0.16 0.02 260);
+  --safety: oklch(0.9 0.19 105);
+  --destructive: oklch(0.55 0.2 27);
+  --destructive-foreground: oklch(0.98 0.002 90);
+  --border: oklch(0.9 0.005 258);
+  --border-strong: oklch(0.8 0.008 258);
+  --input: oklch(0.88 0.006 258);
+  --ring: oklch(0.26 0.045 258);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 3px;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+}
+
+@utility skip-link {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 100;
+  transform: translateY(-200%);
+  background: var(--color-primary);
+  color: var(--color-primary-foreground);
+  padding: 0.75rem 1rem;
+
+  &:focus {
+    transform: translateY(0);
+  }
+}
+
+@utility container-page {
+  width: 100%;
+  margin-inline: auto;
+  max-width: 84rem;
+  padding-inline: 1.25rem;
+
+  @media (width >= 1024px) {
+    padding-inline: 2.5rem;
+  }
+}
+
+@utility eyebrow {
+  font-family: var(--font-display);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-muted-foreground);
+}
+
+@utility btn-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  padding: 0.75rem 1.4rem;
+  font-family: var(--font-display);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease,
+    border-color 0.25s ease,
+    transform 0.25s ease;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+@utility btn-primary {
+  background-color: var(--color-primary);
+  color: var(--color-primary-foreground);
+
+  &:hover {
+    background-color: color-mix(in oklab, var(--color-primary) 88%, black);
+    transform: translateY(-1px);
+  }
+}
+
+@utility btn-accent {
+  background-color: var(--color-accent);
+  color: var(--color-accent-foreground);
+
+  &:hover {
+    background-color: color-mix(in oklab, var(--color-accent) 88%, black);
+    transform: translateY(-1px);
+  }
+}
+
+@utility btn-outline {
+  border-color: var(--color-border-strong);
+  color: var(--color-foreground);
+  background-color: transparent;
+
+  &:hover {
+    border-color: var(--color-primary);
+    background-color: var(--color-surface);
+  }
+}
+
+@utility btn-onDark {
+  border-color: oklch(1 0 0 / 35%);
+  color: var(--color-primary-foreground);
+  background-color: transparent;
+
+  &:hover {
+    background-color: oklch(1 0 0 / 12%);
+  }
+}
+
+@utility rule-accent {
+  &::before {
+    content: "";
+    display: block;
+    width: 2.5rem;
+    height: 2px;
+    background-color: var(--color-accent);
+    margin-bottom: 1.25rem;
+  }
+}
+
+@utility card-surface {
+  background-color: var(--color-card);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-subtle);
+  transition:
+    box-shadow 0.3s ease,
+    border-color 0.3s ease,
+    transform 0.3s ease;
+}
+
+@utility field-base {
+  width: 100%;
+  border: 1px solid var(--color-input);
+  border-radius: var(--radius);
+  background-color: var(--color-card);
+  padding: 0.7rem 0.85rem;
+  font-size: 0.9375rem;
+  color: var(--color-foreground);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+
+  &::placeholder {
+    color: color-mix(in oklab, var(--color-muted-foreground) 80%, transparent);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary) 14%, transparent);
+  }
+}
+
+@utility animate-rise {
+  animation: rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
