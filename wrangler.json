@@ -1,0 +1,10 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "rion-sports",
+  "main": "dist/server/server.js",
+  "compatibility_date": "2026-06-14",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "./dist/client"
+  }
+}
