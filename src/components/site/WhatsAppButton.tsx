@@ -9,15 +9,15 @@ export function WhatsAppButton() {
       target="_blank"
       rel="noreferrer"
       aria-label="Chat with us on WhatsApp"
-      className="group fixed right-4 bottom-4 z-50 flex items-center gap-0 sm:right-6 sm:bottom-6"
+      className="group fixed right-[max(1rem,env(safe-area-inset-right))] bottom-[max(1rem,env(safe-area-inset-bottom))] z-50 flex items-center gap-0 sm:right-[max(1.5rem,env(safe-area-inset-right))] sm:bottom-[max(1.5rem,env(safe-area-inset-bottom))]"
     >
-      <span className="pointer-events-none mr-0 max-w-0 overflow-hidden rounded-sm bg-primary text-primary-foreground opacity-0 transition-all duration-300 group-hover:mr-2 group-hover:max-w-[15rem] group-hover:opacity-100">
+      <span className="pointer-events-none mr-0 max-w-0 overflow-hidden rounded-sm bg-primary text-primary-foreground opacity-0 transition-all duration-300 group-hover:mr-2 group-hover:max-w-[15rem] group-hover:opacity-100 group-focus-visible:mr-2 group-focus-visible:max-w-[15rem] group-focus-visible:opacity-100">
         <span className="block px-3 py-2 text-xs font-medium whitespace-nowrap">
           Chat with us on WhatsApp
         </span>
       </span>
       <span
-        className="grid h-13 w-13 place-items-center rounded-full shadow-[0_10px_30px_-8px_rgba(0,0,0,0.4)] transition-transform duration-300 group-hover:scale-105"
+        className="grid h-13 w-13 place-items-center rounded-full shadow-[0_10px_30px_-8px_rgba(0,0,0,0.4)] transition-transform duration-300 group-hover:scale-105 group-focus-visible:scale-105"
         style={{ backgroundColor: "#25D366" }}
       >
         <svg viewBox="0 0 24 24" className="h-7 w-7" fill="#FFFFFF" aria-hidden="true">

@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
+import { SmoothScroll } from "@/components/site/SmoothScroll";
 import { WhatsAppButton } from "@/components/site/WhatsAppButton";
 
 function NotFoundComponent() {
@@ -125,6 +126,7 @@ function RootComponent() {
 
   return (
     <div className="flex min-h-screen flex-col">
+      <SmoothScroll />
       <a href="#main-content" className="skip-link">
         Skip to main content
       </a>

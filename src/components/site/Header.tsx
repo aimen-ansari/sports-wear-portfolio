@@ -135,6 +135,7 @@ export function Header() {
       {open && (
         <div
           id="mobile-navigation"
+          data-lenis-prevent
           className="max-h-[calc(100vh-72px)] overflow-y-auto border-t border-border bg-background lg:hidden"
         >
           <nav className="container-page flex flex-col py-2" aria-label="Mobile navigation">

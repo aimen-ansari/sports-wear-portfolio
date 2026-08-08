@@ -13,7 +13,9 @@ import logistics from "@/assets/industry-logistics.jpg";
 import automotive from "@/assets/industry-automotive.jpg";
 import quality from "@/assets/quality-inspection.jpg";
 
-export const WHATSAPP_NUMBER = (import.meta.env["VITE_WHATSAPP_NUMBER"] ?? "").replace(/\D/g, "");
+export const WHATSAPP_NUMBER = (
+  import.meta.env["VITE_WHATSAPP_NUMBER"] ?? "923338600603"
+).replace(/\D/g, "");
 export const WHATSAPP_MESSAGE =
   "Hello RION SPORTS, I would like to inquire about your workwear products and manufacturing services.";
 export const CONTACT = {
