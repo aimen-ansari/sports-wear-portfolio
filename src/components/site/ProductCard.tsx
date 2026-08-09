@@ -1,12 +1,13 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowUpRight } from "lucide-react";
-import type { Product } from "@/data/catalog";
+import { ImageIcon } from "lucide-react";
+import type { ProductWithCategory } from "@/lib/database.types";
 
 export function ProductCard({
   product,
   showQuickView = false,
 }: {
-  product: Product;
+  product: ProductWithCategory;
   showQuickView?: boolean;
 }) {
   return (
@@ -16,17 +17,24 @@ export function ProductCard({
         params={{ sku: product.sku }}
         className="relative block overflow-hidden bg-surface"
       >
-        <img
-          src={product.image}
-          alt={`${product.name} — ${product.category} by RION SPORTS`}
-          width={1000}
-          height={1250}
-          loading="lazy"
-          className="aspect-4/5 w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
-        />
+        {product.image_urls[0] ? (
+          <img
+            src={product.image_urls[0]}
+            alt={`${product.name} — ${product.categories?.name ?? "workwear"} by RION SPORTS`}
+            width={1000}
+            height={1250}
+            loading="lazy"
+            className="aspect-4/5 w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+          />
+        ) : (
+          <span className="flex aspect-4/5 w-full items-center justify-center bg-surface text-muted-foreground">
+            <ImageIcon className="h-8 w-8" aria-hidden="true" />
+            <span className="sr-only">No product image available</span>
+          </span>
+        )}
       </Link>
       <div className="flex flex-1 flex-col p-5">
-        <p className="eyebrow">{product.category}</p>
+        <p className="eyebrow">{product.categories?.name ?? "Workwear"}</p>
         <h3 className="mt-2 text-base leading-snug font-semibold">
           <Link to="/products/$sku" params={{ sku: product.sku }} className="hover:text-accent">
             {product.name}
@@ -35,15 +43,10 @@ export function ProductCard({
         <p className="mt-1 font-mono text-xs text-muted-foreground">{product.sku}</p>
 
         <div className="mt-4 flex items-center gap-2">
-          {product.colors.map((c) => (
-            <span
-              key={c.name}
-              title={c.name}
-              className="h-3.5 w-3.5 rounded-full border border-border-strong"
-              style={{ backgroundColor: c.hex }}
-            />
-          ))}
-          <span className="text-xs text-muted-foreground">{product.colors.length} colours</span>
+          <span className="text-xs text-muted-foreground">
+            {product.available_colors.length} colour
+            {product.available_colors.length === 1 ? "" : "s"}
+          </span>
         </div>
 
         <div className="mt-5 flex flex-wrap items-center gap-2 pt-1">

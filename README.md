@@ -1,62 +1,125 @@
-# RION SPORTS Workwear
+# RION SPORTS
 
-Server-rendered B2B catalog and inquiry website for RION SPORTS. The application uses React 19, TanStack Start/Router, Vite, TypeScript, and Tailwind CSS.
+RION SPORTS is a React 19 and TanStack Start application built with Vite, TypeScript, Tailwind CSS 4, and Supabase.
 
-## Requirements
+## Local Setup
 
-- Node.js 22.18 or another supported version from `package.json`
-- npm 11
+1. Use Node 22 and npm 11.
+2. Run `npm install`.
+3. Create `.env.local` from `.env.example` and add the public Supabase project values.
+4. Run `npm run dev`.
 
-Use npm as the only package manager. `package-lock.json` is the dependency source of truth.
+Never commit `.env`, `.env.local`, a Supabase service-role key, or an email-provider API key.
 
-## Local Development
+## Environment Variables
 
-```sh
-npm ci
-cp .env.example .env.local
-npm run dev
+Browser/build environment:
+
+```text
+VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+VITE_SITE_URL=https://www.rionsports.com
+VITE_CONTACT_EMAIL=sales@rionsports.com
+VITE_CONTACT_PHONE=923338600603
+VITE_CONTACT_ADDRESS=Sialkot, Punjab, Pakistan
+VITE_CONTACT_HOURS=Monday - Saturday, 09:00 - 18:00 (GMT+5)
+VITE_WHATSAPP_NUMBER=923338600603
+VITE_FACEBOOK_URL=
+VITE_INSTAGRAM_URL=
+VITE_LINKEDIN_URL=
 ```
 
-Public contact settings use the `VITE_` prefix and are included in the browser bundle. Never put credentials in a `VITE_` variable.
+Supabase Edge Function secrets:
 
-## Inquiry Delivery
+```text
+RESEND_API_KEY=re_...
+INQUIRY_TO_EMAIL=sales@rionsports.com
+INQUIRY_FROM_EMAIL=RION SPORTS <inquiries@your-verified-domain.com>
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+SITE_URL=https://www.rionsports.com
+```
 
-Inquiry forms submit multipart data through a TanStack server function. Set these server-only variables in the deployment environment:
+`SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are provided automatically to hosted Supabase Edge
+Functions. None of the Edge Function secrets may use a `VITE_` prefix, and the service-role key must
+never be added to the website environment.
 
-- `INQUIRY_WEBHOOK_URL`: HTTPS endpoint that accepts the inquiry as multipart form data.
-- `INQUIRY_WEBHOOK_TOKEN`: optional bearer token sent to the endpoint.
+## Database And Storage
 
-The payload contains all form fields, a generated `reference`, `submittedAt`, and an optional `attachment`. The endpoint must return a successful HTTP status only after it has durably accepted or delivered the inquiry. Without `INQUIRY_WEBHOOK_URL`, the form shows a truthful service-unavailable message and directs the buyer to email.
+The complete migration is `supabase/migrations/20260809000000_rion_sports_admin.sql`. It creates:
 
-Attachments are limited to one PDF, JPG, PNG, or AI file of at most 10 MB. The downstream service should also verify content signatures, malware-scan files, use private storage, rate-limit submissions, and retain records according to the privacy policy.
+- `categories`, `products`, `inquiries`, and `admin_users`
+- Automatic `updated_at` triggers
+- Eight initial product categories and eight active, featured product programmes
+- RLS policies and the security-definer `is_admin()` authorization function
+- Durable inquiry rate limiting and notification-delivery status
+- Public `product-images` and `category-images` buckets
+- Private `inquiry-attachments` bucket
+- Storage policies for public catalog reads and admin-only catalog writes
+
+Apply it with the Supabase CLI after linking the repository:
+
+```bash
+npx supabase login
+npx supabase link --project-ref YOUR_PROJECT_REF
+npx supabase db push
+```
+
+Alternatively, execute the migration once in the Supabase SQL Editor. Do not disable RLS.
+
+## Admin Account
+
+There is no public registration route.
+
+1. In Supabase Dashboard, open **Authentication > Users** and create the admin user with a strong password.
+2. Copy the Auth user UUID.
+3. Add the approved account in the SQL Editor:
+
+```sql
+insert into public.admin_users (user_id, email)
+values ('AUTH_USER_UUID', 'admin@example.com');
+```
+
+4. Sign in at `/admin/login`.
+
+The product rows are seeded without image URLs because storage URLs are project-specific. After the
+first login, upload the existing catalog photography through **Admin > Products** and category
+photography through **Admin > Categories**.
+
+An authenticated user not present in `admin_users` is redirected and all admin database/storage operations are denied by RLS. Password reset links must allow `${SITE_URL}/admin/login` in **Authentication > URL Configuration > Redirect URLs**.
+
+## Inquiry Edge Function
+
+The function at `supabase/functions/submit-inquiry/index.ts` validates the public form, uploads a private attachment, writes the inquiry with the service role, and sends the business notification and customer confirmation as one Resend batch.
+
+Set secrets and deploy:
+
+```bash
+npx supabase secrets set RESEND_API_KEY=re_...
+npx supabase secrets set INQUIRY_TO_EMAIL=sales@rionsports.com
+npx supabase secrets set "INQUIRY_FROM_EMAIL=RION SPORTS <inquiries@your-verified-domain.com>"
+npx supabase secrets set SITE_URL=https://www.rionsports.com
+npx supabase functions deploy submit-inquiry
+```
+
+Keep JWT verification enabled. Public clients invoke the function with the project anon JWT; only the function has permission to insert inquiries or upload private attachments.
+
+## Resend Setup
+
+1. Add and verify the sending domain in Resend.
+2. Create an API key restricted to sending email.
+3. Use a sender on that verified domain for `INQUIRY_FROM_EMAIL`.
+4. Set `INQUIRY_TO_EMAIL` to the RION SPORTS business inbox.
+5. Set the Edge Function secrets and deploy the function.
 
 ## Commands
 
-```sh
-npm run dev           # Development server
-npm run format        # Apply formatting
-npm run format:check  # Check formatting
-npm run lint          # ESLint with zero warnings allowed
-npm run typecheck     # TypeScript verification
-npm test              # Unit tests
-npm run build         # Production build
-npm run check         # Complete CI quality gate
+```bash
+npm run dev
+npm run typecheck
+npm run lint
+npm test
+npm run build
+npm run check
 ```
 
-## Architecture
-
-- `src/routes`: file-based pages and route metadata.
-- `src/components/site`: reachable site components.
-- `src/data/catalog.ts`: static catalog and public contact configuration.
-- `src/lib/inquiry.functions.ts`: server-side inquiry delivery.
-- `src/lib/inquiry.ts`: shared inquiry validation.
-- `src/server.ts`: TanStack server wrapper, catastrophic error normalization, and security headers.
-- `src/start.ts`: request error and CSRF middleware.
-
-`src/routeTree.gen.ts` is generated by TanStack Router and must not be edited manually.
-
-## Deployment
-
-The Lovable Vite wrapper configures TanStack Start and Nitro, using Cloudflare as its default target. Configure all environment variables in the selected platform, run `npm run check`, deploy the generated output, and verify inquiry delivery plus response security headers in the live environment.
-
-The project remains connected to [Lovable](https://lovable.dev/projects/f2029844-055b-4130-8fd6-3ec83c5cec32). Avoid rewriting published Git history because pushed commits synchronize back to Lovable.
+Live Supabase authentication, CRUD, storage, and email delivery require a configured Supabase project and Resend account; local static checks do not substitute for those external integration tests.

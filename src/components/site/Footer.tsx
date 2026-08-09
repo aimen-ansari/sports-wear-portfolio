@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Facebook, Instagram, Linkedin, MessageCircle } from "lucide-react";
 import { CONTACT, hasWhatsApp, SOCIAL_LINKS, whatsappLink } from "@/data/catalog";
+import { useCategories } from "@/hooks/use-catalog";
 
 const columns = [
   {
@@ -33,6 +34,7 @@ const columns = [
 ];
 
 export function Footer() {
+  const { categories } = useCategories();
   return (
     <footer className="border-t border-border bg-primary text-primary-foreground">
       <div className="container-page grid gap-12 py-16 md:grid-cols-2 lg:grid-cols-6">
@@ -91,25 +93,19 @@ export function Footer() {
             Products
           </p>
           <ul className="mt-4 space-y-2.5">
-            {[
-              { label: "Work Jackets", category: "work-jackets" },
-              { label: "Work Trousers", category: "work-trousers" },
-              { label: "Coveralls", category: "coveralls" },
-              { label: "Hi-Visibility Workwear", category: "hi-visibility" },
-            ].map((link) => (
-              <li key={link.category}>
+            {categories.slice(0, 4).map((category) => (
+              <li key={category.id}>
                 <Link
                   to="/products"
                   search={{
-                    category: link.category,
+                    category: category.slug,
                     q: undefined,
-                    type: undefined,
                     color: undefined,
                     material: undefined,
                   }}
                   className="text-sm text-primary-foreground/70 transition-colors hover:text-primary-foreground"
                 >
-                  {link.label}
+                  {category.name}
                 </Link>
               </li>
             ))}

@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Menu, Search, X } from "lucide-react";
+import { Menu, Search, UserCog, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 const navItems = [
   { label: "Home", to: "/" },
@@ -18,6 +19,7 @@ export function Header() {
   const navigate = useNavigate();
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const { isAdmin } = useAuth();
 
   useEffect(() => {
     const closeOnEscape = (event: KeyboardEvent) => {
@@ -43,7 +45,6 @@ export function Header() {
       search: {
         q: query.trim() || undefined,
         category: undefined,
-        type: undefined,
         color: undefined,
         material: undefined,
       },
@@ -94,6 +95,12 @@ export function Header() {
           </button>
           <Link to="/contact" className="btn-base btn-primary hidden sm:inline-flex">
             Request a Quote
+          </Link>
+          <Link
+            to={isAdmin ? "/admin/dashboard" : "/admin/login"}
+            className="btn-base btn-outline hidden px-3 lg:inline-flex"
+          >
+            <UserCog className="h-4 w-4" /> {isAdmin ? "Dashboard" : "Admin"}
           </Link>
           <button
             ref={menuButtonRef}
@@ -155,6 +162,13 @@ export function Header() {
               className="btn-base btn-primary my-4 sm:hidden"
             >
               Request a Quote
+            </Link>
+            <Link
+              to={isAdmin ? "/admin/dashboard" : "/admin/login"}
+              onClick={() => setOpen(false)}
+              className="btn-base btn-outline my-2"
+            >
+              <UserCog className="h-4 w-4" /> {isAdmin ? "Dashboard" : "Admin"}
             </Link>
           </nav>
         </div>

@@ -1,8 +1,8 @@
-import { useServerFn } from "@tanstack/react-start";
 import { CheckCircle2, Upload } from "lucide-react";
-import { cloneElement, useId, useRef, useState } from "react";
-import { categories } from "@/data/catalog";
-import { submitInquiry } from "@/lib/inquiry.functions";
+import { cloneElement, useEffect, useId, useRef, useState } from "react";
+import { useCategories } from "@/hooks/use-catalog";
+import type { ProductWithCategory } from "@/lib/database.types";
+import { getSupabase } from "@/lib/supabase";
 import {
   EMPTY_INQUIRY,
   validateInquiry,
@@ -14,19 +14,21 @@ import {
 type Props = {
   title?: string;
   description?: string;
-  productReference?: string;
+  product?: ProductWithCategory;
   compact?: boolean;
 };
 
-export function InquiryForm({ title, description, productReference, compact = false }: Props) {
+export function InquiryForm({ title, description, product, compact = false }: Props) {
   const idPrefix = useId();
   const formRef = useRef<HTMLFormElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
-  const sendInquiry = useServerFn(submitInquiry);
+  const submissionTokenRef = useRef("");
+  const { categories } = useCategories();
+  const productReference = product ? `${product.name} — ${product.sku}` : "";
   const initialValues = (): InquiryValues => ({
     ...EMPTY_INQUIRY,
-    category: productReference ? "" : categories[0]!.name,
-    productReference: productReference ?? "",
+    category: product ? "" : (categories[0]?.name ?? ""),
+    productReference,
   });
   const [values, setValues] = useState<InquiryValues>(initialValues);
   const [attachment, setAttachment] = useState<File>();
@@ -39,8 +41,16 @@ export function InquiryForm({ title, description, productReference, compact = fa
     | {
         state: "success";
         reference: string;
+        firstName: string;
+        email: string;
       }
   >({ state: "idle" });
+
+  useEffect(() => {
+    if (!product && !values.category && categories[0]) {
+      setValues((current) => ({ ...current, category: categories[0]!.name }));
+    }
+  }, [categories, product, values.category]);
 
   const set =
     (key: keyof InquiryValues) =>
@@ -65,17 +75,46 @@ export function InquiryForm({ title, description, productReference, compact = fa
 
     setStatus({ state: "pending" });
     const formData = new FormData();
-    formData.set("fields", JSON.stringify(values));
+    submissionTokenRef.current ||= crypto.randomUUID();
+    formData.set("submission_token", submissionTokenRef.current);
+    formData.set("full_name", values.name);
+    formData.set("company_name", values.company);
+    formData.set("email", values.email);
+    formData.set("phone", values.phone);
+    formData.set("country", values.country);
+    formData.set("product_category", product?.categories?.name ?? values.category);
+    formData.set("estimated_quantity", values.quantity);
+    formData.set("customization_requirements", values.customization);
+    formData.set("message", values.message);
+    formData.set("website", values.website);
+    if (product) {
+      formData.set("product_id", product.id);
+    }
     if (attachment) formData.set("attachment", attachment, attachment.name);
 
     try {
-      const result = await sendInquiry({ data: formData });
-      if (!result.ok) {
-        if (result.fieldErrors) setErrors(result.fieldErrors);
-        setStatus({ state: "error", message: result.message });
+      const { data, error } = await getSupabase().functions.invoke<{
+        ok?: boolean;
+        reference?: string;
+        error?: string;
+      }>("submit-inquiry", { body: formData });
+      if (error || !data?.ok || !data.reference) {
+        setStatus({
+          state: "error",
+          message:
+            data?.error ??
+            error?.message ??
+            "We could not send your inquiry. Please try again or contact us by email.",
+        });
         return;
       }
-      setStatus({ state: "success", reference: result.reference });
+      const firstName = values.name.trim().split(/\s+/)[0] ?? values.name;
+      const email = values.email;
+      setValues(initialValues());
+      setAttachment(undefined);
+      submissionTokenRef.current = "";
+      if (fileRef.current) fileRef.current.value = "";
+      setStatus({ state: "success", reference: data.reference, firstName, email });
     } catch {
       setStatus({
         state: "error",
@@ -101,9 +140,8 @@ export function InquiryForm({ title, description, productReference, compact = fa
         <CheckCircle2 className="h-8 w-8 text-accent" />
         <h3 className="text-xl">Inquiry received</h3>
         <p className="text-sm leading-relaxed text-muted-foreground">
-          Thank you, {values.name.trim().split(/\s+/)[0]}. Our export team will review your
-          requirement
-          {productReference ? ` for ${productReference}` : ""} and reply to {values.email} within
+          Thank you, {status.firstName}. Our export team will review your requirement
+          {productReference ? ` for ${productReference}` : ""} and reply to {status.email} within
           one business day.
         </p>
         <p className="font-mono text-xs text-muted-foreground">Reference: {status.reference}</p>

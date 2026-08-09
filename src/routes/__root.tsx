@@ -15,6 +15,7 @@ import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import { SmoothScroll } from "@/components/site/SmoothScroll";
 import { WhatsAppButton } from "@/components/site/WhatsAppButton";
+import { AuthProvider } from "@/components/auth/AuthProvider";
 
 function NotFoundComponent() {
   return (
@@ -114,6 +115,7 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const isAdminRoute = pathname.startsWith("/admin");
   const firstRender = useRef(true);
 
   useEffect(() => {
@@ -124,18 +126,27 @@ function RootComponent() {
     document.querySelector<HTMLElement>("#main-content")?.focus();
   }, [pathname]);
 
-  return (
-    <div className="flex min-h-screen flex-col">
-      <SmoothScroll />
-      <a href="#main-content" className="skip-link">
-        Skip to main content
-      </a>
-      <Header />
-      <main id="main-content" tabIndex={-1} className="flex-1 focus:outline-none">
+  if (isAdminRoute)
+    return (
+      <AuthProvider>
         <Outlet />
-      </main>
-      <Footer />
-      <WhatsAppButton />
-    </div>
+      </AuthProvider>
+    );
+
+  return (
+    <AuthProvider>
+      <div className="flex min-h-screen flex-col">
+        <SmoothScroll />
+        <a href="#main-content" className="skip-link">
+          Skip to main content
+        </a>
+        <Header />
+        <main id="main-content" tabIndex={-1} className="flex-1 focus:outline-none">
+          <Outlet />
+        </main>
+        <Footer />
+        <WhatsAppButton />
+      </div>
+    </AuthProvider>
   );
 }

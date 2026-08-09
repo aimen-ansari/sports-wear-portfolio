@@ -3,10 +3,12 @@ import { ArrowRight, Boxes, Factory, Globe2, PencilRuler, ShieldCheck, Tags } fr
 import heroImage from "@/assets/industry-construction.jpg";
 import factoryImage from "@/assets/factory.jpg";
 import fabricsImage from "@/assets/fabrics.jpg";
-import { categories, industries, products } from "@/data/catalog";
+import { industries } from "@/data/catalog";
 import { CategoryCard } from "@/components/site/CategoryCard";
 import { ProductCard } from "@/components/site/ProductCard";
+import { CatalogMessage, CatalogSkeleton } from "@/components/site/CatalogStates";
 import { SectionHeading } from "@/components/site/SectionHeading";
+import { useCatalog } from "@/hooks/use-catalog";
 import { absoluteUrl, canonicalLinks } from "@/lib/site";
 
 export const Route = createFileRoute("/")({
@@ -72,6 +74,7 @@ const customTags = [
 ];
 
 function Home() {
+  const { categories, products, loading, error } = useCatalog(true);
   return (
     <>
       {/* HERO */}
@@ -128,10 +131,20 @@ function Home() {
               </Link>
             }
           />
-          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {categories.map((c) => (
-              <CategoryCard key={c.slug} category={c} />
-            ))}
+          <div className="mt-12">
+            {loading ? (
+              <CatalogSkeleton />
+            ) : error ? (
+              <CatalogMessage type="error" message={error} />
+            ) : categories.length ? (
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                {categories.map((c) => (
+                  <CategoryCard key={c.id} category={c} />
+                ))}
+              </div>
+            ) : (
+              <CatalogMessage type="empty" message="Product categories are being prepared." />
+            )}
           </div>
         </div>
       </section>
@@ -144,10 +157,20 @@ function Home() {
             title="Programme-Ready Workwear Styles"
             description="Established styles that buyers use as a starting point for their own collections. Specifications, fabrics and branding are adapted to each order."
           />
-          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {products.map((p) => (
-              <ProductCard key={p.sku} product={p} />
-            ))}
+          <div className="mt-12">
+            {loading ? (
+              <CatalogSkeleton />
+            ) : error ? (
+              <CatalogMessage type="error" message={error} />
+            ) : products.length ? (
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                {products.map((p) => (
+                  <ProductCard key={p.id} product={p} />
+                ))}
+              </div>
+            ) : (
+              <CatalogMessage type="empty" message="Featured products will appear here soon." />
+            )}
           </div>
         </div>
       </section>
