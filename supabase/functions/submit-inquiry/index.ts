@@ -32,32 +32,24 @@ function safeFileName(name: string): string {
     .slice(-120);
 }
 
-async function hasValidSignature(file: File): Promise<boolean> {
+async function validatedContentType(file: File): Promise<string | undefined> {
   const bytes = new Uint8Array(await file.slice(0, 5).arrayBuffer());
   const prefix = String.fromCharCode(...bytes);
   const extension = file.name.toLowerCase().split(".").pop();
-  if (extension === "pdf") return file.type === "application/pdf" && prefix === "%PDF-";
+  if (extension === "pdf" && prefix === "%PDF-") return "application/pdf";
   if (extension === "jpg" || extension === "jpeg") {
-    return (
-      file.type === "image/jpeg" && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff
-    );
+    if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return "image/jpeg";
   }
   if (extension === "png") {
-    return (
-      file.type === "image/png" &&
-      bytes[0] === 0x89 &&
-      bytes[1] === 0x50 &&
-      bytes[2] === 0x4e &&
-      bytes[3] === 0x47
-    );
+    if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) {
+      return "image/png";
+    }
   }
   if (extension === "ai") {
-    return (
-      (file.type === "application/pdf" && prefix === "%PDF-") ||
-      (file.type === "application/postscript" && prefix.startsWith("%!PS"))
-    );
+    if (prefix === "%PDF-") return "application/pdf";
+    if (prefix.startsWith("%!PS")) return "application/postscript";
   }
-  return false;
+  return undefined;
 }
 
 async function sha256(value: string): Promise<string> {
@@ -114,10 +106,8 @@ Deno.serve(async (request) => {
   const attachmentEntry = form.get("attachment");
   const attachment =
     attachmentEntry instanceof File && attachmentEntry.size > 0 ? attachmentEntry : undefined;
-  if (
-    attachment &&
-    (attachment.size > 10 * 1024 * 1024 || !(await hasValidSignature(attachment)))
-  ) {
+  const attachmentContentType = attachment ? await validatedContentType(attachment) : undefined;
+  if (attachment && (attachment.size > 10 * 1024 * 1024 || !attachmentContentType)) {
     return json(
       { error: "The reference file type, content, or size is not allowed." },
       422,
@@ -181,7 +171,7 @@ Deno.serve(async (request) => {
       attachmentPath = `${inquiryId}/${crypto.randomUUID()}-${safeFileName(attachment.name)}`;
       const { error } = await supabase.storage
         .from("inquiry-attachments")
-        .upload(attachmentPath, attachment, { contentType: attachment.type, upsert: false });
+        .upload(attachmentPath, attachment, { contentType: attachmentContentType, upsert: false });
       if (error) {
         console.error(error);
         return json({ error: "The reference file could not be uploaded." }, 500, corsHeaders);

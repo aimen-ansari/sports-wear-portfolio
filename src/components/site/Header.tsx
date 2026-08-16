@@ -18,6 +18,7 @@ export function Header() {
   const [query, setQuery] = useState("");
   const navigate = useNavigate();
   const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const searchButtonRef = useRef<HTMLButtonElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const { isAdmin } = useAuth();
 
@@ -25,12 +26,13 @@ export function Header() {
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
       if (open) menuButtonRef.current?.focus();
+      else if (searchOpen) searchButtonRef.current?.focus();
       setOpen(false);
       setSearchOpen(false);
     };
     document.addEventListener("keydown", closeOnEscape);
     return () => document.removeEventListener("keydown", closeOnEscape);
-  }, [open]);
+  }, [open, searchOpen]);
 
   useEffect(() => {
     if (searchOpen) searchInputRef.current?.focus();
@@ -84,6 +86,7 @@ export function Header() {
 
         <div className="flex items-center gap-2 lg:gap-3">
           <button
+            ref={searchButtonRef}
             type="button"
             aria-label="Search products"
             aria-expanded={searchOpen}

@@ -11,7 +11,10 @@ export const Route = createFileRoute("/products/$sku")({
   loader: async ({ params }) => {
     const product = await getActiveProduct(params.sku);
     if (!product) throw notFound();
-    const products = await getActiveProducts();
+    const products = await getActiveProducts().catch((error) => {
+      console.error("Could not load related products:", error);
+      return [];
+    });
     return {
       product,
       related: products

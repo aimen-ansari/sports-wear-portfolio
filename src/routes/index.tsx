@@ -6,12 +6,28 @@ import fabricsImage from "@/assets/fabrics.jpg";
 import { industries } from "@/data/catalog";
 import { CategoryCard } from "@/components/site/CategoryCard";
 import { ProductCard } from "@/components/site/ProductCard";
-import { CatalogMessage, CatalogSkeleton } from "@/components/site/CatalogStates";
+import { CatalogMessage } from "@/components/site/CatalogStates";
 import { SectionHeading } from "@/components/site/SectionHeading";
-import { useCatalog } from "@/hooks/use-catalog";
+import { getActiveCategories, getActiveProducts } from "@/lib/catalog-api";
 import { absoluteUrl, canonicalLinks } from "@/lib/site";
 
 export const Route = createFileRoute("/")({
+  loader: async () => {
+    try {
+      const [categories, products] = await Promise.all([
+        getActiveCategories(),
+        getActiveProducts(true),
+      ]);
+      return { categories, products, error: "" };
+    } catch (error) {
+      console.error("Could not load the featured catalog:", error);
+      return {
+        categories: [],
+        products: [],
+        error: "The catalog is temporarily unavailable. Please try again later.",
+      };
+    }
+  },
   head: () => ({
     meta: [
       { title: "RION APPARELS — Workwear Manufacturer & Exporter" },
@@ -74,7 +90,7 @@ const customTags = [
 ];
 
 function Home() {
-  const { categories, products, loading, error } = useCatalog(true);
+  const { categories, products, error } = Route.useLoaderData();
   return (
     <>
       {/* HERO */}
@@ -132,9 +148,7 @@ function Home() {
             }
           />
           <div className="mt-12">
-            {loading ? (
-              <CatalogSkeleton />
-            ) : error ? (
+            {error ? (
               <CatalogMessage type="error" message={error} />
             ) : categories.length ? (
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -158,9 +172,7 @@ function Home() {
             description="Established styles that buyers use as a starting point for their own collections. Specifications, fabrics and branding are adapted to each order."
           />
           <div className="mt-12">
-            {loading ? (
-              <CatalogSkeleton />
-            ) : error ? (
+            {error ? (
               <CatalogMessage type="error" message={error} />
             ) : products.length ? (
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">

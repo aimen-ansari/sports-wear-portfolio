@@ -70,8 +70,8 @@ function AdminLogin() {
         if (password.length < 8) throw new Error("Use at least 8 characters for the new password.");
         const { error: updateError } = await supabase.auth.updateUser({ password });
         if (updateError) throw updateError;
-        setMessage("Password updated. You can now continue to the dashboard.");
         await refresh();
+        navigate({ to: "/admin/dashboard", replace: true });
       } else {
         const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
           email,

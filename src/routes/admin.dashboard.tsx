@@ -1,5 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { FolderTree, MessageSquare, Package, Sparkles, ToggleRight } from "lucide-react";
+import {
+  FolderTree,
+  MailWarning,
+  MessageSquare,
+  Package,
+  Sparkles,
+  ToggleRight,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { AdminPageHeader } from "@/components/admin/AdminLayout";
 import { LoadingRows } from "@/components/admin/AdminUi";
@@ -19,6 +26,7 @@ type Metrics = {
   featuredProducts: number;
   categories: number;
   newInquiries: number;
+  failedNotifications: number;
   recent: InquiryRow[];
 };
 
@@ -29,7 +37,8 @@ function Dashboard() {
   useEffect(() => {
     const supabase = getSupabase();
     const load = async () => {
-      const [total, active, featured, categories, inquiries, recent] = await Promise.all([
+      const [total, active, featured, categories, inquiries, failedNotifications, recent] =
+        await Promise.all([
         supabase.from("products").select("id", { count: "exact", head: true }),
         supabase
           .from("products")
@@ -44,6 +53,10 @@ function Dashboard() {
           .eq("categories.is_active", true),
         supabase.from("categories").select("id", { count: "exact", head: true }),
         supabase.from("inquiries").select("id", { count: "exact", head: true }).eq("status", "new"),
+        supabase
+          .from("inquiries")
+          .select("id", { count: "exact", head: true })
+          .eq("notification_status", "failed"),
         supabase.from("inquiries").select("*").order("created_at", { ascending: false }).limit(6),
       ]);
       const firstError = [
@@ -52,6 +65,7 @@ function Dashboard() {
         featured.error,
         categories.error,
         inquiries.error,
+        failedNotifications.error,
         recent.error,
       ].find(Boolean);
       if (firstError) throw firstError;
@@ -62,6 +76,7 @@ function Dashboard() {
         featuredProducts: featured.count ?? 0,
         categories: categories.count ?? 0,
         newInquiries: inquiries.count ?? 0,
+        failedNotifications: failedNotifications.count ?? 0,
         recent: recent.data ?? [],
       });
       setLoading(false);
@@ -91,6 +106,11 @@ function Dashboard() {
         { label: "Featured products", value: metrics.featuredProducts, Icon: Sparkles },
         { label: "Total categories", value: metrics.categories, Icon: FolderTree },
         { label: "New inquiries", value: metrics.newInquiries, Icon: MessageSquare },
+        {
+          label: "Email delivery failures",
+          value: metrics.failedNotifications,
+          Icon: MailWarning,
+        },
       ]
     : [];
 
@@ -117,7 +137,18 @@ function Dashboard() {
         <LoadingRows />
       ) : metrics ? (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+          {metrics.failedNotifications > 0 && (
+            <Link
+              to="/admin/inquiries"
+              className="mb-5 block border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive"
+              role="alert"
+            >
+              {metrics.failedNotifications} inquiry notification
+              {metrics.failedNotifications === 1 ? " has" : "s have"} failed. Open inquiries and
+              contact these customers directly.
+            </Link>
+          )}
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
             {cards.map(({ label, value, Icon }) => (
               <div key={label} className="card-surface p-5">
                 <div className="flex items-center justify-between">

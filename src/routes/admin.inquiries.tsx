@@ -342,7 +342,7 @@ function InquiryDetail({
   const body = encodeURIComponent(
     `Hello ${inquiry.full_name},\n\nThank you for contacting RION APPARELS.\n\n`,
   );
-  const reply = `mailto:${inquiry.email}?subject=${subject}&body=${body}`;
+  const reply = `mailto:${encodeURIComponent(inquiry.email)}?subject=${subject}&body=${body}`;
   const rows = [
     ["Company", inquiry.company_name],
     ["Email", inquiry.email],

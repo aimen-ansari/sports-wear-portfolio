@@ -43,6 +43,7 @@ export function InquiryForm({ title, description, product, compact = false }: Pr
         reference: string;
         firstName: string;
         email: string;
+        warning?: string | undefined;
       }
   >({ state: "idle" });
 
@@ -74,29 +75,30 @@ export function InquiryForm({ title, description, product, compact = false }: Pr
     }
 
     setStatus({ state: "pending" });
-    const formData = new FormData();
-    submissionTokenRef.current ||= crypto.randomUUID();
-    formData.set("submission_token", submissionTokenRef.current);
-    formData.set("full_name", values.name);
-    formData.set("company_name", values.company);
-    formData.set("email", values.email);
-    formData.set("phone", values.phone);
-    formData.set("country", values.country);
-    formData.set("product_category", product?.categories?.name ?? values.category);
-    formData.set("estimated_quantity", values.quantity);
-    formData.set("customization_requirements", values.customization);
-    formData.set("message", values.message);
-    formData.set("website", values.website);
-    if (product) {
-      formData.set("product_id", product.id);
-    }
-    if (attachment) formData.set("attachment", attachment, attachment.name);
-
     try {
+      const formData = new FormData();
+      submissionTokenRef.current ||= crypto.randomUUID();
+      formData.set("submission_token", submissionTokenRef.current);
+      formData.set("full_name", values.name);
+      formData.set("company_name", values.company);
+      formData.set("email", values.email);
+      formData.set("phone", values.phone);
+      formData.set("country", values.country);
+      formData.set("product_category", product?.categories?.name ?? values.category);
+      formData.set("estimated_quantity", values.quantity);
+      formData.set("customization_requirements", values.customization);
+      formData.set("message", values.message);
+      formData.set("website", values.website);
+      if (product) {
+        formData.set("product_id", product.id);
+      }
+      if (attachment) formData.set("attachment", attachment, attachment.name);
+
       const { data, error } = await getSupabase().functions.invoke<{
         ok?: boolean;
         reference?: string;
         error?: string;
+        warning?: string;
       }>("submit-inquiry", { body: formData });
       if (error || !data?.ok || !data.reference) {
         setStatus({
@@ -114,7 +116,13 @@ export function InquiryForm({ title, description, product, compact = false }: Pr
       setAttachment(undefined);
       submissionTokenRef.current = "";
       if (fileRef.current) fileRef.current.value = "";
-      setStatus({ state: "success", reference: data.reference, firstName, email });
+      setStatus({
+        state: "success",
+        reference: data.reference,
+        firstName,
+        email,
+        warning: data.warning,
+      });
     } catch {
       setStatus({
         state: "error",
@@ -145,6 +153,12 @@ export function InquiryForm({ title, description, product, compact = false }: Pr
           one business day.
         </p>
         <p className="font-mono text-xs text-muted-foreground">Reference: {status.reference}</p>
+        {status.warning && (
+          <p className="border border-accent/40 bg-accent/5 p-3 text-sm" role="alert">
+            Your inquiry was saved, but email confirmation is temporarily unavailable. Please keep
+            the reference above and contact us directly if your request is urgent.
+          </p>
+        )}
         <button type="button" className="btn-base btn-outline" onClick={reset}>
           Send another inquiry
         </button>

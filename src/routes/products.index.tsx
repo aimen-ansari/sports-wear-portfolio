@@ -1,9 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import { useId, useState } from "react";
-import { CatalogMessage, CatalogSkeleton } from "@/components/site/CatalogStates";
+import { CatalogMessage } from "@/components/site/CatalogStates";
 import { ProductCard } from "@/components/site/ProductCard";
-import { useCatalog } from "@/hooks/use-catalog";
+import { getActiveCategories, getActiveProducts } from "@/lib/catalog-api";
 import { canonicalLinks } from "@/lib/site";
 
 export type ProductSearch = {
@@ -23,6 +23,22 @@ export const Route = createFileRoute("/products/")({
     color: readSearch(search["color"]),
     material: readSearch(search["material"]),
   }),
+  loader: async () => {
+    try {
+      const [categories, products] = await Promise.all([
+        getActiveCategories(),
+        getActiveProducts(),
+      ]);
+      return { categories, products, error: "" };
+    } catch (error) {
+      console.error("Could not load the product catalog:", error);
+      return {
+        categories: [],
+        products: [],
+        error: "The catalog is temporarily unavailable. Please try again later.",
+      };
+    }
+  },
   head: () => ({
     meta: [
       { title: "Workwear Product Catalog | RION APPARELS" },
@@ -41,7 +57,7 @@ function ProductsPage() {
   const navigate = Route.useNavigate();
   const filtersId = useId();
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const { categories, products, loading, error } = useCatalog();
+  const { categories, products, error } = Route.useLoaderData();
   const colors = Array.from(
     new Set(products.flatMap((product) => product.available_colors)),
   ).sort();
@@ -160,9 +176,7 @@ function ProductsPage() {
                 Request Catalog
               </Link>
             </div>
-            {loading ? (
-              <CatalogSkeleton count={6} />
-            ) : error ? (
+            {error ? (
               <CatalogMessage type="error" message={error} />
             ) : filtered.length ? (
               <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
