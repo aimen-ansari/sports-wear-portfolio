@@ -73,11 +73,16 @@ function AdminLogin() {
         setMessage("Password updated. You can now continue to the dashboard.");
         await refresh();
       } else {
-        const { error: loginError } = await supabase.auth.signInWithPassword({ email, password });
+        const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
         if (loginError) throw loginError;
         if (!(await isCurrentUserAdmin())) {
           await supabase.auth.signOut();
-          throw new Error("This account is not authorized as a RION APPARELS administrator.");
+          throw new Error(
+            `This account is authenticated but is not linked to the admin access record. User ID: ${loginData.user.id}`,
+          );
         }
         await refresh();
         navigate({ to: "/admin/dashboard", replace: true });

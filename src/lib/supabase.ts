@@ -33,8 +33,14 @@ export function getStoragePath(publicUrl: string, bucket: string): string | unde
 export async function isCurrentUserAdmin(): Promise<boolean> {
   if (!isSupabaseConfigured) return false;
   const supabase = getSupabase();
-  const { data: sessionData } = await supabase.auth.getSession();
-  if (!sessionData.session) return false;
-  const { data, error } = await supabase.rpc("is_admin");
-  return !error && data === true;
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  if (userError) throw userError;
+  if (!userData.user) return false;
+  const { data, error } = await supabase
+    .from("admin_users")
+    .select("user_id")
+    .eq("user_id", userData.user.id)
+    .maybeSingle();
+  if (error) throw error;
+  return data?.user_id === userData.user.id;
 }

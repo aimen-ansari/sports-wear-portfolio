@@ -1,6 +1,6 @@
 import type { Session, User } from "@supabase/supabase-js";
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
-import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
+import { getSupabase, isCurrentUserAdmin, isSupabaseConfigured } from "@/lib/supabase";
 
 type AuthState = {
   session: Session | null;
@@ -37,8 +37,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       update({ session: null, user: null, isAdmin: false, loading: false });
       return;
     }
-    const { data: isAdmin, error } = await supabase.rpc("is_admin");
-    update({ session, user: session.user, isAdmin: !error && isAdmin === true, loading: false });
+    try {
+      const isAdmin = await isCurrentUserAdmin();
+      update({ session, user: session.user, isAdmin, loading: false });
+    } catch (error) {
+      console.error("Admin authorization check failed:", error);
+      update({ session, user: session.user, isAdmin: false, loading: false });
+    }
   };
 
   useEffect(() => {
