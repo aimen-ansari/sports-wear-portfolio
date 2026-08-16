@@ -41,14 +41,14 @@ export function Footer() {
         <div className="lg:col-span-2">
           <Link
             to="/"
-            aria-label="RION SPORTS home"
+            aria-label="RION APPARELS home"
             className="block h-14 w-52 overflow-hidden bg-white"
           >
             <img
               src="/logo.png"
-              alt="RION SPORTS"
-              width={1536}
-              height={1024}
+              alt="RION APPARELS"
+              width={624}
+              height={390}
               loading="lazy"
               className="h-full w-full object-cover"
             />
@@ -134,7 +134,7 @@ export function Footer() {
       </div>
       <div className="border-t border-primary-foreground/15">
         <div className="container-page flex flex-col gap-2 py-5 text-xs text-primary-foreground/55 lg:flex-row lg:items-center lg:justify-between">
-          <p>© {new Date().getFullYear()} RION SPORTS. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} RION APPARELS. All rights reserved.</p>
           <p>Workwear · Industrial Clothing · Safety Wear · Custom Uniforms</p>
           <p className="text-primary-foreground">
             Developed by{" "}

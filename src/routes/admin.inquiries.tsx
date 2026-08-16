@@ -15,7 +15,7 @@ import { getSupabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/admin/inquiries")({
   head: () => ({
-    meta: [{ title: "Inquiries | RION SPORTS Admin" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "Inquiries | RION APPARELS Admin" }, { name: "robots", content: "noindex" }],
   }),
   component: InquiriesAdmin,
 });
@@ -31,18 +31,28 @@ function InquiriesAdmin() {
   const [busyDelete, setBusyDelete] = useState(false);
   const [notice, setNotice] = useState<Notice>(null);
   const [page, setPage] = useState(1);
-  const load = async () => {
-    setLoading(true);
+  const load = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     const { data, error } = await getSupabase()
       .from("inquiries")
       .select("*")
       .order("created_at", { ascending: false });
-    setLoading(false);
+    if (showLoading) setLoading(false);
     if (error) setNotice({ type: "error", message: error.message });
     else setInquiries(data ?? []);
   };
   useEffect(() => {
     void load();
+    const supabase = getSupabase();
+    const channel = supabase
+      .channel("admin-inquiries-list")
+      .on("postgres_changes", { event: "*", schema: "public", table: "inquiries" }, () => {
+        void load(false);
+      })
+      .subscribe();
+    return () => {
+      void supabase.removeChannel(channel);
+    };
   }, []);
   const filtered = useMemo(
     () =>
@@ -276,9 +286,9 @@ function InquiryDetail({
   onAttachment: () => void;
   onDelete: () => void;
 }) {
-  const subject = encodeURIComponent(`Re: RION SPORTS inquiry ${inquiry.id}`);
+  const subject = encodeURIComponent(`Re: RION APPARELS inquiry ${inquiry.id}`);
   const body = encodeURIComponent(
-    `Hello ${inquiry.full_name},\n\nThank you for contacting RION SPORTS.\n\n`,
+    `Hello ${inquiry.full_name},\n\nThank you for contacting RION APPARELS.\n\n`,
   );
   const reply = `mailto:${inquiry.email}?subject=${subject}&body=${body}`;
   const rows = [

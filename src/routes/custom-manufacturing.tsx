@@ -8,15 +8,15 @@ import { canonicalLinks } from "@/lib/site";
 export const Route = createFileRoute("/custom-manufacturing")({
   head: () => ({
     meta: [
-      { title: "Custom Workwear Manufacturing — OEM, ODM & Private Label | RION SPORTS" },
+      { title: "Custom Workwear Manufacturing — OEM, ODM & Private Label | RION APPARELS" },
       {
         name: "description",
         content:
-          "OEM and ODM workwear manufacturing, private label production, custom fabrics, colours, embroidery, printing, labels and export packaging by RION SPORTS.",
+          "OEM and ODM workwear manufacturing, private label production, custom fabrics, colours, embroidery, printing, labels and export packaging by RION APPARELS.",
       },
       {
         property: "og:title",
-        content: "Custom Workwear Manufacturing — OEM, ODM & Private Label | RION SPORTS",
+        content: "Custom Workwear Manufacturing — OEM, ODM & Private Label | RION APPARELS",
       },
       {
         property: "og:description",
@@ -105,7 +105,7 @@ function CustomManufacturingPage() {
       <section className="relative border-b border-border">
         <img
           src={factoryImage}
-          alt="Workwear manufacturing line at RION SPORTS"
+          alt="Workwear manufacturing line at RION APPARELS"
           width={1408}
           height={1056}
           className="h-[42vh] min-h-[320px] w-full object-cover"

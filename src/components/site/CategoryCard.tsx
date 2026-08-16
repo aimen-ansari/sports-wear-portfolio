@@ -18,7 +18,7 @@ export function CategoryCard({ category }: { category: CategoryRow }) {
         {category.image_url ? (
           <img
             src={category.image_url}
-            alt={`${category.name} manufactured by RION SPORTS`}
+            alt={`${category.name} manufactured by RION APPARELS`}
             width={1000}
             height={1250}
             loading="lazy"

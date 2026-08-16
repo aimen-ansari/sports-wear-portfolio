@@ -1,6 +1,6 @@
-# RION SPORTS
+# RION APPARELS
 
-RION SPORTS is a React 19 and TanStack Start application built with Vite, TypeScript, Tailwind CSS 4, and Supabase.
+RION APPARELS is a React 19 and TanStack Start application built with Vite, TypeScript, Tailwind CSS 4, and Supabase.
 
 ## Local Setup
 
@@ -18,8 +18,8 @@ Browser/build environment:
 ```text
 VITE_SUPABASE_URL=https://your-project-ref.supabase.co
 VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
-VITE_SITE_URL=https://www.rionsports.com
-VITE_CONTACT_EMAIL=sales@rionsports.com
+VITE_SITE_URL=https://www.rionapparels.com
+VITE_CONTACT_EMAIL=sales@rionapparels.com
 VITE_CONTACT_PHONE=923338600603
 VITE_CONTACT_ADDRESS=Sialkot, Punjab, Pakistan
 VITE_CONTACT_HOURS=Monday - Saturday, 09:00 - 18:00 (GMT+5)
@@ -33,10 +33,10 @@ Supabase Edge Function secrets:
 
 ```text
 RESEND_API_KEY=re_...
-INQUIRY_TO_EMAIL=sales@rionsports.com
-INQUIRY_FROM_EMAIL=RION SPORTS <inquiries@your-verified-domain.com>
+INQUIRY_TO_EMAIL=sales@rionapparels.com
+INQUIRY_FROM_EMAIL=RION APPARELS <inquiries@your-verified-domain.com>
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-SITE_URL=https://www.rionsports.com
+SITE_URL=https://www.rionapparels.com
 ```
 
 `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are provided automatically to hosted Supabase Edge
@@ -89,15 +89,18 @@ An authenticated user not present in `admin_users` is redirected and all admin d
 
 ## Inquiry Edge Function
 
-The function at `supabase/functions/submit-inquiry/index.ts` validates the public form, uploads a private attachment, writes the inquiry with the service role, and sends the business notification and customer confirmation as one Resend batch.
+The function at `supabase/functions/submit-inquiry/index.ts` validates the public form, uploads a private attachment, writes the inquiry with the service role, and sends independent Resend notifications to the business and customer.
+
+Values in `.env.local` or `.env.example` are not available to the hosted function. Configure the
+function environment with Supabase secrets before deploying.
 
 Set secrets and deploy:
 
 ```bash
 npx supabase secrets set RESEND_API_KEY=re_...
-npx supabase secrets set INQUIRY_TO_EMAIL=sales@rionsports.com
-npx supabase secrets set "INQUIRY_FROM_EMAIL=RION SPORTS <inquiries@your-verified-domain.com>"
-npx supabase secrets set SITE_URL=https://www.rionsports.com
+npx supabase secrets set INQUIRY_TO_EMAIL=sales@rionapparels.com
+npx supabase secrets set "INQUIRY_FROM_EMAIL=RION APPARELS <inquiries@your-verified-domain.com>"
+npx supabase secrets set SITE_URL=https://www.rionapparels.com
 npx supabase functions deploy submit-inquiry
 ```
 
@@ -108,7 +111,7 @@ Keep JWT verification enabled. Public clients invoke the function with the proje
 1. Add and verify the sending domain in Resend.
 2. Create an API key restricted to sending email.
 3. Use a sender on that verified domain for `INQUIRY_FROM_EMAIL`.
-4. Set `INQUIRY_TO_EMAIL` to the RION SPORTS business inbox.
+4. Set `INQUIRY_TO_EMAIL` to the RION APPARELS business inbox.
 5. Set the Edge Function secrets and deploy the function.
 
 ## Commands

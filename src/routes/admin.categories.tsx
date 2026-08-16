@@ -14,7 +14,7 @@ import { getStoragePath, getSupabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/admin/categories")({
   head: () => ({
-    meta: [{ title: "Categories | RION SPORTS Admin" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "Categories | RION APPARELS Admin" }, { name: "robots", content: "noindex" }],
   }),
   component: CategoriesAdmin,
 });

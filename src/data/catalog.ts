@@ -10,9 +10,9 @@ export const WHATSAPP_NUMBER = (import.meta.env["VITE_WHATSAPP_NUMBER"] ?? "9233
   "",
 );
 export const WHATSAPP_MESSAGE =
-  "Hello RION SPORTS, I would like to inquire about your workwear products and manufacturing services.";
+  "Hello RION APPARELS, I would like to inquire about your workwear products and manufacturing services.";
 export const CONTACT = {
-  email: import.meta.env["VITE_CONTACT_EMAIL"] ?? "sales@rionsports.com",
+  email: import.meta.env["VITE_CONTACT_EMAIL"] ?? "sales@rionapparels.com",
   phone: import.meta.env["VITE_CONTACT_PHONE"] ?? "",
   address: import.meta.env["VITE_CONTACT_ADDRESS"] ?? "Sialkot, Punjab, Pakistan",
   hours: import.meta.env["VITE_CONTACT_HOURS"] ?? "Monday - Saturday, 09:00 - 18:00 (GMT+5)",

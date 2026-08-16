@@ -76,14 +76,14 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "RION SPORTS — Workwear Manufacturer & Exporter" },
+      { title: "RION APPARELS — Workwear Manufacturer & Exporter" },
       {
         name: "description",
         content:
-          "RION SPORTS manufactures and exports workwear, industrial clothing, safety wear and custom work uniforms for international B2B buyers.",
+          "RION APPARELS manufactures and exports workwear, industrial clothing, safety wear and custom work uniforms for international B2B buyers.",
       },
-      { name: "author", content: "RION SPORTS" },
-      { property: "og:site_name", content: "RION SPORTS" },
+      { name: "author", content: "RION APPARELS" },
+      { property: "og:site_name", content: "RION APPARELS" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],

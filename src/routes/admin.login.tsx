@@ -12,7 +12,7 @@ export const Route = createFileRoute("/admin/login")({
   }),
   head: () => ({
     meta: [
-      { title: "Admin Login | RION SPORTS" },
+      { title: "Admin Login | RION APPARELS" },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
@@ -33,7 +33,7 @@ function AdminLogin() {
   );
   const [message, setMessage] = useState(
     search.reason === "unauthorized"
-      ? "This account is not authorized as a RION SPORTS administrator."
+      ? "This account is not authorized as a RION APPARELS administrator."
       : "",
   );
   const [error, setError] = useState("");
@@ -77,7 +77,7 @@ function AdminLogin() {
         if (loginError) throw loginError;
         if (!(await isCurrentUserAdmin())) {
           await supabase.auth.signOut();
-          throw new Error("This account is not authorized as a RION SPORTS administrator.");
+          throw new Error("This account is not authorized as a RION APPARELS administrator.");
         }
         await refresh();
         navigate({ to: "/admin/dashboard", replace: true });
@@ -93,23 +93,23 @@ function AdminLogin() {
     <div className="grid min-h-screen bg-surface lg:grid-cols-[1fr_1.1fr]">
       <div className="relative hidden overflow-hidden bg-primary p-12 text-primary-foreground lg:flex lg:flex-col lg:justify-between">
         <div className="absolute inset-y-0 right-0 w-1 bg-accent" />
-        <img src="/logo.png" alt="RION SPORTS" className="h-16 w-52 object-cover" />
+        <img src="/logo.png" alt="RION APPARELS" className="h-16 w-52 object-cover" />
         <div className="relative max-w-md">
           <p className="eyebrow text-white/55">Secure administration</p>
           <h1 className="mt-4 text-4xl leading-tight">
-            Manage the RION SPORTS product catalog and customer inquiries.
+            Manage the RION APPARELS product catalog and customer inquiries.
           </h1>
           <p className="mt-5 text-sm leading-relaxed text-white/60">
             Access is restricted to approved administrative accounts.
           </p>
         </div>
-        <p className="text-xs text-white/40">RION SPORTS Admin Portal</p>
+        <p className="text-xs text-white/40">RION APPARELS Admin Portal</p>
       </div>
       <div className="flex items-center justify-center p-5 sm:p-10">
         <div className="w-full max-w-md">
           <img
             src="/logo.png"
-            alt="RION SPORTS"
+            alt="RION APPARELS"
             className="mx-auto mb-10 h-16 w-52 object-cover lg:hidden"
           />
           <p className="eyebrow">Admin portal</p>
@@ -210,7 +210,7 @@ function AdminLogin() {
             href="/"
             className="mt-10 block border-t border-border pt-5 text-xs text-muted-foreground hover:text-foreground"
           >
-            Return to RION SPORTS website
+            Return to RION APPARELS website
           </a>
         </div>
       </div>

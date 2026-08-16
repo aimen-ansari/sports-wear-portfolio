@@ -68,7 +68,7 @@ async function sha256(value: string): Promise<string> {
 Deno.serve(async (request) => {
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  const resendKey = Deno.env.get("RESEND_API_KEY");
+  const resendKey = Deno.env.get("RESEND_API_KEY") ?? Deno.env.get("RESEND-API-KEY");
   const toEmail = Deno.env.get("INQUIRY_TO_EMAIL");
   const fromEmail = Deno.env.get("INQUIRY_FROM_EMAIL");
   const siteUrlValue = Deno.env.get("SITE_URL")?.replace(/\/$/, "");
@@ -77,8 +77,8 @@ Deno.serve(async (request) => {
     return new Response("ok", { headers: corsHeaders });
   }
   if (request.method !== "POST") return json({ error: "Method not allowed." }, 405, corsHeaders);
-  if (!supabaseUrl || !serviceRoleKey || !resendKey || !toEmail || !fromEmail || !siteUrlValue) {
-    console.error("Missing required Edge Function secrets.");
+  if (!supabaseUrl || !serviceRoleKey) {
+    console.error("Missing required Supabase Edge Function secrets.");
     return json({ error: "Inquiry service is not configured." }, 503, corsHeaders);
   }
   const contentLength = Number(request.headers.get("content-length") ?? "0");
@@ -198,9 +198,10 @@ Deno.serve(async (request) => {
       product_id: product?.id ?? null,
       product_name: product?.name ?? null,
       product_sku: product?.sku ?? null,
-      product_page_url: product
-        ? `${siteUrlValue}/products/${encodeURIComponent(product.sku)}`
-        : null,
+      product_page_url:
+        product && siteUrlValue
+          ? `${siteUrlValue}/products/${encodeURIComponent(product.sku)}`
+          : null,
       product_category: product?.categories?.name ?? (text(form, "product_category", 120) || null),
       estimated_quantity: text(form, "estimated_quantity", 80) || null,
       customization_requirements: text(form, "customization_requirements", 500) || null,
@@ -245,38 +246,66 @@ Deno.serve(async (request) => {
         `<tr><th align="left" style="padding:8px;border-bottom:1px solid #ddd">${escapeHtml(label!)}</th><td style="padding:8px;border-bottom:1px solid #ddd">${escapeHtml(value!)}</td></tr>`,
     )
     .join("");
-  const adminLink = `${siteUrlValue}/admin/inquiries`;
-  let emailError = "";
-  try {
-    const response = await fetch("https://api.resend.com/emails/batch", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${resendKey}`,
-        "Content-Type": "application/json",
-        "Idempotency-Key": `inquiry-${inquiryId}`,
-      },
-      body: JSON.stringify([
+  const missingEmailSecrets = [
+    !resendKey && "RESEND_API_KEY",
+    !toEmail && "INQUIRY_TO_EMAIL",
+    !fromEmail && "INQUIRY_FROM_EMAIL",
+  ].filter(Boolean);
+  let emailError = missingEmailSecrets.length
+    ? `Missing Edge Function secrets: ${missingEmailSecrets.join(", ")}`
+    : "";
+  if (!emailError) {
+    try {
+      const adminLink = siteUrlValue
+        ? `<p><a href="${escapeHtml(`${siteUrlValue}/admin/inquiries`)}">Open admin dashboard</a></p>`
+        : "";
+      const notifications = [
         {
-          from: fromEmail,
-          to: [toEmail],
-          reply_to: record.email,
-          subject: "New Website Inquiry – RION SPORTS",
-          html: `<h1>New website inquiry</h1><table style="border-collapse:collapse">${body}</table><p><a href="${escapeHtml(adminLink)}">Open admin dashboard</a></p>`,
+          name: "admin notification",
+          message: {
+            from: fromEmail,
+            to: [toEmail],
+            reply_to: record.email,
+            subject: "New Website Inquiry – RION APPARELS",
+            html: `<h1>New website inquiry</h1><table style="border-collapse:collapse">${body}</table>${adminLink}`,
+          },
         },
         {
-          from: fromEmail,
-          to: [record.email],
-          reply_to: toEmail,
-          subject: "We received your inquiry | RION SPORTS",
-          html: `<p>Hello ${escapeHtml(record.full_name)},</p><p>RION SPORTS received your inquiry. Our export team will review your requirements and respond within one business day.</p><p>Reference: <strong>${inquiryId}</strong></p><p>RION SPORTS</p>`,
+          name: "customer confirmation",
+          message: {
+            from: fromEmail,
+            to: [record.email],
+            reply_to: toEmail,
+            subject: "We received your inquiry | RION APPARELS",
+            html: `<p>Hello ${escapeHtml(record.full_name)},</p><p>RION APPARELS received your inquiry. Our export team will review your requirements and respond within one business day.</p><p>Reference: <strong>${inquiryId}</strong></p><p>RION APPARELS</p>`,
+          },
         },
-      ]),
-      signal: AbortSignal.timeout(12_000),
-    });
-    if (!response.ok)
-      emailError = `Resend returned HTTP ${response.status}: ${(await response.text()).slice(0, 500)}`;
-  } catch (error) {
-    emailError = error instanceof Error ? error.message : "Email provider request failed.";
+      ];
+      const responses = await Promise.all(
+        notifications.map((notification) =>
+          fetch("https://api.resend.com/emails", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${resendKey}`,
+              "Content-Type": "application/json",
+              "Idempotency-Key": `inquiry-${inquiryId}-${notification.name.replace(" ", "-")}`,
+            },
+            body: JSON.stringify(notification.message),
+            signal: AbortSignal.timeout(12_000),
+          }),
+        ),
+      );
+      const failures = await Promise.all(
+        responses.map(async (response, index) =>
+          response.ok
+            ? ""
+            : `${notifications[index]!.name} failed with HTTP ${response.status}: ${(await response.text()).slice(0, 500)}`,
+        ),
+      );
+      emailError = failures.filter(Boolean).join("; ");
+    } catch (error) {
+      emailError = error instanceof Error ? error.message : "Email provider request failed.";
+    }
   }
 
   if (emailError) {
@@ -287,10 +316,11 @@ Deno.serve(async (request) => {
       .eq("id", inquiryId);
     return json(
       {
-        error: "Your inquiry was saved, but notification delivery failed. Please try again.",
+        ok: true,
         reference: inquiryId,
+        warning: "The inquiry was saved, but notification delivery failed.",
       },
-      502,
+      200,
       corsHeaders,
     );
   }

@@ -25,10 +25,10 @@ export const Route = createFileRoute("/products/")({
   }),
   head: () => ({
     meta: [
-      { title: "Workwear Product Catalog | RION SPORTS" },
+      { title: "Workwear Product Catalog | RION APPARELS" },
       {
         name: "description",
-        content: "Browse active RION SPORTS workwear and safety wear programmes for B2B buyers.",
+        content: "Browse active RION APPARELS workwear and safety wear programmes for B2B buyers.",
       },
     ],
     links: canonicalLinks("/products"),

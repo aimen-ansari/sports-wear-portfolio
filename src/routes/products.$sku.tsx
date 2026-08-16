@@ -25,9 +25,9 @@ export const Route = createFileRoute("/products/$sku")({
     };
   },
   head: ({ loaderData }) => {
-    if (!loaderData) return { meta: [{ title: "Product unavailable | RION SPORTS" }] };
+    if (!loaderData) return { meta: [{ title: "Product unavailable | RION APPARELS" }] };
     const { product } = loaderData;
-    const title = `${product.name} (${product.sku}) | RION SPORTS`;
+    const title = `${product.name} (${product.sku}) | RION APPARELS`;
     const image = product.image_urls[0];
     return {
       meta: [
@@ -129,7 +129,7 @@ function ProductDetail() {
               {hasWhatsApp && (
                 <a
                   href={whatsappLink(
-                    `Hello RION SPORTS, I would like to ask about ${product.name} (${product.sku}).`,
+                    `Hello RION APPARELS, I would like to ask about ${product.name} (${product.sku}).`,
                   )}
                   target="_blank"
                   rel="noreferrer"

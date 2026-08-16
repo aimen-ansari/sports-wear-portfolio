@@ -14,13 +14,13 @@ import { absoluteUrl, canonicalLinks } from "@/lib/site";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "RION SPORTS — Workwear Manufacturer & Exporter" },
+      { title: "RION APPARELS — Workwear Manufacturer & Exporter" },
       {
         name: "description",
         content:
-          "Professional workwear manufacturing for brands, distributors and businesses worldwide. Custom manufacturing, private label and worldwide export by RION SPORTS.",
+          "Professional workwear manufacturing for brands, distributors and businesses worldwide. Custom manufacturing, private label and worldwide export by RION APPARELS.",
       },
-      { property: "og:title", content: "RION SPORTS — Workwear Manufacturer & Exporter" },
+      { property: "og:title", content: "RION APPARELS — Workwear Manufacturer & Exporter" },
       {
         property: "og:description",
         content:
@@ -180,7 +180,7 @@ function Home() {
         <div className="container-page grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
           <img
             src={factoryImage}
-            alt="RION SPORTS workwear production floor with industrial sewing lines"
+            alt="RION APPARELS workwear production floor with industrial sewing lines"
             width={1408}
             height={1056}
             loading="lazy"
@@ -192,7 +192,7 @@ function Home() {
               From Our Factory to Your Brand.
             </h2>
             <p className="mt-5 text-[15px] leading-relaxed text-muted-foreground">
-              RION SPORTS provides complete workwear manufacturing solutions — material sourcing,
+              RION APPARELS provides complete workwear manufacturing solutions — material sourcing,
               pattern development, sampling, bulk production, customization, branding and export
               packaging. Every programme is managed by a dedicated merchandising contact, from the
               first technical discussion through to dispatch documentation.
@@ -216,7 +216,7 @@ function Home() {
       <section className="border-y border-border bg-surface py-20 lg:py-28">
         <div className="container-page">
           <SectionHeading
-            eyebrow="Why RION SPORTS"
+            eyebrow="Why RION APPARELS"
             title="A Manufacturing Partner, Not a Reseller"
             align="center"
           />
@@ -285,7 +285,7 @@ function Home() {
               >
                 <img
                   src={industry.image}
-                  alt={`${industry.name} workwear supplied by RION SPORTS`}
+                  alt={`${industry.name} workwear supplied by RION APPARELS`}
                   width={1200}
                   height={900}
                   loading="lazy"

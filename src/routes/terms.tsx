@@ -5,13 +5,13 @@ import { canonicalLinks } from "@/lib/site";
 export const Route = createFileRoute("/terms")({
   head: () => ({
     meta: [
-      { title: "Terms of Business | RION SPORTS" },
+      { title: "Terms of Business | RION APPARELS" },
       {
         name: "description",
         content:
-          "RION SPORTS terms of business covering quotations, samples, minimum order quantities, production tolerances, payment and shipping.",
+          "RION APPARELS terms of business covering quotations, samples, minimum order quantities, production tolerances, payment and shipping.",
       },
-      { property: "og:title", content: "Terms of Business | RION SPORTS" },
+      { property: "og:title", content: "Terms of Business | RION APPARELS" },
       {
         property: "og:description",
         content: "Quotation validity, sampling, tolerances, payment terms and delivery conditions.",

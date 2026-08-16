@@ -7,13 +7,13 @@ import { canonicalLinks } from "@/lib/site";
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { title: "Request a Quote | Contact RION SPORTS Workwear Manufacturing" },
+      { title: "Request a Quote | Contact RION APPARELS Workwear Manufacturing" },
       {
         name: "description",
         content:
-          "Contact RION SPORTS for workwear manufacturing quotations. Send your product category, quantities and customization requirements to our export team.",
+          "Contact RION APPARELS for workwear manufacturing quotations. Send your product category, quantities and customization requirements to our export team.",
       },
-      { property: "og:title", content: "Request a Quote | Contact RION SPORTS" },
+      { property: "og:title", content: "Request a Quote | Contact RION APPARELS" },
       {
         property: "og:description",
         content:

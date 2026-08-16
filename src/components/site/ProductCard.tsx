@@ -20,7 +20,7 @@ export function ProductCard({
         {product.image_urls[0] ? (
           <img
             src={product.image_urls[0]}
-            alt={`${product.name} — ${product.categories?.name ?? "workwear"} by RION SPORTS`}
+            alt={`${product.name} — ${product.categories?.name ?? "workwear"} by RION APPARELS`}
             width={1000}
             height={1250}
             loading="lazy"

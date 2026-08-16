@@ -5,13 +5,13 @@ import { canonicalLinks } from "@/lib/site";
 export const Route = createFileRoute("/privacy")({
   head: () => ({
     meta: [
-      { title: "Privacy Policy | RION SPORTS" },
+      { title: "Privacy Policy | RION APPARELS" },
       {
         name: "description",
         content:
-          "How RION SPORTS collects, uses and protects the business information submitted through our workwear manufacturing inquiry forms.",
+          "How RION APPARELS collects, uses and protects the business information submitted through our workwear manufacturing inquiry forms.",
       },
-      { property: "og:title", content: "Privacy Policy | RION SPORTS" },
+      { property: "og:title", content: "Privacy Policy | RION APPARELS" },
       {
         property: "og:description",
         content: "Our approach to handling business inquiry data and reference files.",

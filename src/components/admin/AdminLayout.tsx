@@ -72,7 +72,7 @@ export function AdminRouteLayout() {
   return (
     <div className="min-h-screen bg-surface lg:grid lg:grid-cols-[250px_minmax(0,1fr)]">
       <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-border bg-primary px-5 text-primary-foreground lg:hidden">
-        <img src="/logo.png" alt="RION SPORTS" className="h-10 w-36 object-cover" />
+        <img src="/logo.png" alt="RION APPARELS" className="h-10 w-36 object-cover" />
         <button
           type="button"
           onClick={() => setMenuOpen((value) => !value)}
@@ -87,7 +87,7 @@ export function AdminRouteLayout() {
         className={`${menuOpen ? "fixed inset-x-0 top-16 z-30 block" : "hidden"} border-r border-white/10 bg-primary text-primary-foreground lg:sticky lg:top-0 lg:block lg:h-screen`}
       >
         <div className="hidden h-20 items-center border-b border-white/10 px-6 lg:flex">
-          <img src="/logo.png" alt="RION SPORTS" className="h-12 w-40 object-cover" />
+          <img src="/logo.png" alt="RION APPARELS" className="h-12 w-40 object-cover" />
         </div>
         <div className="flex h-[calc(100%-5rem)] flex-col p-4">
           <p className="px-3 py-3 text-[10px] font-semibold tracking-[0.18em] text-white/45 uppercase">

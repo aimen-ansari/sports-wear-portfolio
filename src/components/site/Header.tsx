@@ -56,15 +56,15 @@ export function Header() {
       <div className="container-page grid h-[72px] grid-cols-[minmax(0,1fr)_auto] items-center gap-4 lg:flex lg:justify-between">
         <Link
           to="/"
-          aria-label="RION SPORTS home"
+          aria-label="RION APPARELS home"
           className="block h-11 w-40 shrink-0 overflow-hidden sm:w-44"
           onClick={() => setOpen(false)}
         >
           <img
             src="/logo.png"
-            alt="RION SPORTS"
-            width={1536}
-            height={1024}
+            alt="RION APPARELS"
+            width={624}
+            height={390}
             className="h-full w-full object-cover"
           />
         </Link>

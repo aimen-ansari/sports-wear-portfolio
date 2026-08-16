@@ -14,7 +14,7 @@ import { getStoragePath, getSupabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/admin/products")({
   head: () => ({
-    meta: [{ title: "Products | RION SPORTS Admin" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "Products | RION APPARELS Admin" }, { name: "robots", content: "noindex" }],
   }),
   component: ProductsAdmin,
 });
@@ -215,7 +215,7 @@ function ProductsAdmin() {
           message={
             query || categoryFilter
               ? "Change the search or category filter."
-              : "Add your first RION SPORTS product."
+              : "Add your first RION APPARELS product."
           }
           action={
             !query && !categoryFilter ? (

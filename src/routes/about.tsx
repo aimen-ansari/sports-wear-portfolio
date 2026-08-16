@@ -20,13 +20,13 @@ import { canonicalLinks } from "@/lib/site";
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "About RION SPORTS | Workwear Manufacturer & Exporter" },
+      { title: "About RION APPARELS | Workwear Manufacturer & Exporter" },
       {
         name: "description",
         content:
-          "Meet RION SPORTS, a specialist B2B workwear manufacturer supporting brands, distributors and uniform programmes with OEM, ODM, private label and worldwide export.",
+          "Meet RION APPARELS, a specialist B2B workwear manufacturer supporting brands, distributors and uniform programmes with OEM, ODM, private label and worldwide export.",
       },
-      { property: "og:title", content: "About RION SPORTS | Workwear Manufacturer & Exporter" },
+      { property: "og:title", content: "About RION APPARELS | Workwear Manufacturer & Exporter" },
       {
         property: "og:description",
         content:
@@ -92,7 +92,7 @@ const buyerTypes = [
 const evidence = [
   {
     src: factoryImage,
-    alt: "RION SPORTS workwear production floor",
+    alt: "RION APPARELS workwear production floor",
     label: "Production",
     caption: "Structured cutting, sewing and finishing workflows.",
   },
@@ -120,7 +120,7 @@ function AboutPage() {
             A Workwear Manufacturer Built Around Technical Requirements
           </h1>
           <p className="mt-5 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
-            RION SPORTS manufactures and exports workwear, industrial clothing, safety wear and
+            RION APPARELS manufactures and exports workwear, industrial clothing, safety wear and
             custom work uniforms for international B2B buyers, from established distributors to
             brands launching their first collection.
           </p>
@@ -148,7 +148,7 @@ function AboutPage() {
           <div className="relative">
             <img
               src={factoryImage}
-              alt="RION SPORTS workwear manufacturing facility"
+              alt="RION APPARELS workwear manufacturing facility"
               width={1408}
               height={1056}
               loading="lazy"
@@ -168,9 +168,10 @@ function AboutPage() {
               Specialist Workwear Manufacturing, Not General Garment Production.
             </h2>
             <p className="mt-6 text-[15px] leading-relaxed text-muted-foreground">
-              RION SPORTS focuses on workwear and protective clothing: jackets, trousers, coveralls,
-              bib overalls, hi-visibility garments, safety vests, softshells and work shirts. Every
-              style is produced to buyer requirements rather than supplied as generic stock.
+              RION APPARELS focuses on workwear and protective clothing: jackets, trousers,
+              coveralls, bib overalls, hi-visibility garments, safety vests, softshells and work
+              shirts. Every style is produced to buyer requirements rather than supplied as generic
+              stock.
             </p>
             <p className="mt-4 text-[15px] leading-relaxed text-muted-foreground">
               Our role extends beyond stitching. We help translate a market brief or technical pack

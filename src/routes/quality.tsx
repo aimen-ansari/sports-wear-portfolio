@@ -7,13 +7,13 @@ import { canonicalLinks } from "@/lib/site";
 export const Route = createFileRoute("/quality")({
   head: () => ({
     meta: [
-      { title: "Quality Control in Workwear Production | RION SPORTS" },
+      { title: "Quality Control in Workwear Production | RION APPARELS" },
       {
         name: "description",
         content:
-          "How RION SPORTS controls workwear quality: material inspection, production monitoring, stitching and measurement checks, final QC and packaging inspection.",
+          "How RION APPARELS controls workwear quality: material inspection, production monitoring, stitching and measurement checks, final QC and packaging inspection.",
       },
-      { property: "og:title", content: "Quality Control in Workwear Production | RION SPORTS" },
+      { property: "og:title", content: "Quality Control in Workwear Production | RION APPARELS" },
       {
         property: "og:description",
         content:
@@ -125,7 +125,7 @@ function QualityPage() {
           </div>
           <img
             src={factoryImage}
-            alt="Workwear stitching line at the RION SPORTS factory"
+            alt="Workwear stitching line at the RION APPARELS factory"
             width={1408}
             height={1056}
             loading="lazy"

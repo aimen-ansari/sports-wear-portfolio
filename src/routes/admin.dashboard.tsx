@@ -8,7 +8,7 @@ import { getSupabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/admin/dashboard")({
   head: () => ({
-    meta: [{ title: "Admin Overview | RION SPORTS" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "Admin Overview | RION APPARELS" }, { name: "robots", content: "noindex" }],
   }),
   component: Dashboard,
 });
@@ -26,8 +26,8 @@ function Dashboard() {
   const [metrics, setMetrics] = useState<Metrics>();
   const [error, setError] = useState("");
   useEffect(() => {
+    const supabase = getSupabase();
     const load = async () => {
-      const supabase = getSupabase();
       const [total, active, featured, categories, inquiries, recent] = await Promise.all([
         supabase.from("products").select("id", { count: "exact", head: true }),
         supabase
@@ -64,6 +64,15 @@ function Dashboard() {
       console.error(caught);
       setError("Dashboard metrics could not be loaded.");
     });
+    const channel = supabase
+      .channel("admin-dashboard-inquiries")
+      .on("postgres_changes", { event: "*", schema: "public", table: "inquiries" }, () => {
+        void load();
+      })
+      .subscribe();
+    return () => {
+      void supabase.removeChannel(channel);
+    };
   }, []);
 
   const cards = metrics
