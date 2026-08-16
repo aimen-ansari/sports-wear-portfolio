@@ -39,26 +39,29 @@ function Dashboard() {
     const load = async () => {
       const [total, active, featured, categories, inquiries, failedNotifications, recent] =
         await Promise.all([
-        supabase.from("products").select("id", { count: "exact", head: true }),
-        supabase
-          .from("products")
-          .select("id,categories!inner(id)", { count: "exact", head: true })
-          .eq("is_active", true)
-          .eq("categories.is_active", true),
-        supabase
-          .from("products")
-          .select("id,categories!inner(id)", { count: "exact", head: true })
-          .eq("is_active", true)
-          .eq("is_featured", true)
-          .eq("categories.is_active", true),
-        supabase.from("categories").select("id", { count: "exact", head: true }),
-        supabase.from("inquiries").select("id", { count: "exact", head: true }).eq("status", "new"),
-        supabase
-          .from("inquiries")
-          .select("id", { count: "exact", head: true })
-          .eq("notification_status", "failed"),
-        supabase.from("inquiries").select("*").order("created_at", { ascending: false }).limit(6),
-      ]);
+          supabase.from("products").select("id", { count: "exact", head: true }),
+          supabase
+            .from("products")
+            .select("id,categories!inner(id)", { count: "exact", head: true })
+            .eq("is_active", true)
+            .eq("categories.is_active", true),
+          supabase
+            .from("products")
+            .select("id,categories!inner(id)", { count: "exact", head: true })
+            .eq("is_active", true)
+            .eq("is_featured", true)
+            .eq("categories.is_active", true),
+          supabase.from("categories").select("id", { count: "exact", head: true }),
+          supabase
+            .from("inquiries")
+            .select("id", { count: "exact", head: true })
+            .eq("status", "new"),
+          supabase
+            .from("inquiries")
+            .select("id", { count: "exact", head: true })
+            .eq("notification_status", "failed"),
+          supabase.from("inquiries").select("*").order("created_at", { ascending: false }).limit(6),
+        ]);
       const firstError = [
         total.error,
         active.error,
