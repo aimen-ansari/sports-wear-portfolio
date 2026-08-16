@@ -1,5 +1,5 @@
 import type { Session, User } from "@supabase/supabase-js";
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 
 type AuthState = {
@@ -13,6 +13,7 @@ type AuthState = {
 const AuthContext = createContext<AuthState | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const refreshRequest = useRef(0);
   const [state, setState] = useState<Omit<AuthState, "refresh">>({
     session: null,
     user: null,
@@ -21,19 +22,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   const refresh = async () => {
+    const request = ++refreshRequest.current;
+    const update = (next: Omit<AuthState, "refresh">) => {
+      if (request === refreshRequest.current) setState(next);
+    };
     if (!isSupabaseConfigured) {
-      setState({ session: null, user: null, isAdmin: false, loading: false });
+      update({ session: null, user: null, isAdmin: false, loading: false });
       return;
     }
     const supabase = getSupabase();
     const { data } = await supabase.auth.getSession();
     const session = data.session;
     if (!session) {
-      setState({ session: null, user: null, isAdmin: false, loading: false });
+      update({ session: null, user: null, isAdmin: false, loading: false });
       return;
     }
     const { data: isAdmin, error } = await supabase.rpc("is_admin");
-    setState({ session, user: session.user, isAdmin: !error && isAdmin === true, loading: false });
+    update({ session, user: session.user, isAdmin: !error && isAdmin === true, loading: false });
   };
 
   useEffect(() => {

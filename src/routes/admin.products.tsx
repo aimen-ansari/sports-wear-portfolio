@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Edit3, ImagePlus, Plus, Search, Star, Trash2, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AdminPageHeader } from "@/components/admin/AdminLayout";
 import {
   AdminEmpty,
@@ -62,6 +62,7 @@ const slugify = (value: string) =>
     .trim()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
+const catalogImageTypes = new Set(["image/jpeg", "image/png", "image/webp", "image/avif"]);
 
 function ProductsAdmin() {
   const [products, setProducts] = useState<ProductWithCategory[]>([]);
@@ -72,6 +73,9 @@ function ProductsAdmin() {
   const [page, setPage] = useState(1);
   const [editing, setEditing] = useState<ProductWithCategory | null | undefined>(undefined);
   const [deleting, setDeleting] = useState<ProductWithCategory>();
+  const [busyDelete, setBusyDelete] = useState(false);
+  const [togglingProductIds, setTogglingProductIds] = useState<Set<string>>(() => new Set());
+  const togglingProducts = useRef(new Set<string>());
   const [notice, setNotice] = useState<Notice>(null);
 
   const load = async () => {
@@ -120,26 +124,50 @@ function ProductsAdmin() {
   }, [pageCount]);
 
   const toggle = async (product: ProductWithCategory, field: "is_active" | "is_featured") => {
-    const update =
-      field === "is_active"
-        ? { is_active: !product.is_active }
-        : { is_featured: !product.is_featured };
-    const { error } = await getSupabase().from("products").update(update).eq("id", product.id);
-    if (error) setNotice({ type: "error", message: error.message });
-    else {
+    if (togglingProducts.current.has(product.id)) return;
+    togglingProducts.current.add(product.id);
+    setTogglingProductIds((ids) => new Set(ids).add(product.id));
+    const target = !product[field];
+    const update = field === "is_active" ? { is_active: target } : { is_featured: target };
+    try {
+      const { error } = await getSupabase()
+        .from("products")
+        .update(update)
+        .eq("id", product.id)
+        .select("id")
+        .single();
+      if (error) throw error;
       setProducts((items) =>
-        items.map((item) => (item.id === product.id ? { ...item, [field]: !item[field] } : item)),
+        items.map((item) => (item.id === product.id ? { ...item, [field]: target } : item)),
       );
       setNotice({ type: "success", message: "Product updated." });
+    } catch (caught) {
+      setNotice({
+        type: "error",
+        message: caught instanceof Error ? caught.message : "Product could not be updated.",
+      });
+    } finally {
+      togglingProducts.current.delete(product.id);
+      setTogglingProductIds((ids) => {
+        const next = new Set(ids);
+        next.delete(product.id);
+        return next;
+      });
     }
   };
   const remove = async () => {
-    if (!deleting) return;
+    if (!deleting || busyDelete) return;
+    setBusyDelete(true);
     const product = deleting;
-    setDeleting(undefined);
     const supabase = getSupabase();
-    const { error } = await supabase.from("products").delete().eq("id", product.id);
+    const { error } = await supabase
+      .from("products")
+      .delete()
+      .eq("id", product.id)
+      .select("id")
+      .single();
     if (error) {
+      setBusyDelete(false);
       setNotice({ type: "error", message: error.message });
       return;
     }
@@ -149,6 +177,8 @@ function ProductsAdmin() {
     const storageResult = paths.length
       ? await supabase.storage.from("product-images").remove(paths)
       : undefined;
+    setBusyDelete(false);
+    setDeleting(undefined);
     setProducts((items) => items.filter((item) => item.id !== product.id));
     setNotice({
       type: storageResult?.error ? "error" : "success",
@@ -268,16 +298,22 @@ function ProductsAdmin() {
                     <button
                       type="button"
                       onClick={() => toggle(product, "is_active")}
+                      disabled={togglingProductIds.has(product.id)}
                       aria-label={`Mark ${product.name} ${product.is_active ? "inactive" : "active"}`}
-                      className={`px-2 py-1 text-xs font-medium ${product.is_active ? "bg-green-100 text-green-800" : "bg-muted text-muted-foreground"}`}
+                      className={`px-2 py-1 text-xs font-medium ${product.is_active && product.categories?.is_active ? "bg-green-100 text-green-800" : "bg-muted text-muted-foreground"}`}
                     >
-                      {product.is_active ? "Active" : "Inactive"}
+                      {product.is_active
+                        ? product.categories?.is_active
+                          ? "Active"
+                          : "Hidden by category"
+                        : "Inactive"}
                     </button>
                   </td>
                   <td className="p-4">
                     <button
                       type="button"
                       onClick={() => toggle(product, "is_featured")}
+                      disabled={togglingProductIds.has(product.id)}
                       aria-label={`Mark ${product.name} ${product.is_featured ? "not featured" : "featured"}`}
                     >
                       <Star
@@ -358,6 +394,7 @@ function ProductsAdmin() {
         open={Boolean(deleting)}
         title="Delete product?"
         message={`This permanently deletes ${deleting?.name ?? "this product"} and all of its stored images.`}
+        busy={busyDelete}
         onCancel={() => setDeleting(undefined)}
         onConfirm={remove}
       />
@@ -415,7 +452,7 @@ function ProductForm({
       setError("Slug may contain lowercase letters, numbers and hyphens only.");
       return;
     }
-    if (files.some((file) => !file.type.startsWith("image/") || file.size > 10 * 1024 * 1024)) {
+    if (files.some((file) => !catalogImageTypes.has(file.type) || file.size > 10 * 1024 * 1024)) {
       setError("Each image must be JPG, PNG, WebP or AVIF and no larger than 10 MB.");
       return;
     }
@@ -454,8 +491,12 @@ function ProductForm({
         is_active: draft.is_active,
       };
       const result = product
-        ? await supabase.from("products").update(payload).eq("id", id)
-        : await supabase.from("products").insert({ id, ...payload });
+        ? await supabase.from("products").update(payload).eq("id", id).select("id").single()
+        : await supabase
+            .from("products")
+            .insert({ id, ...payload })
+            .select("id")
+            .single();
       if (result.error) throw result.error;
       let cleanupWarning: string | undefined;
       if (product) {

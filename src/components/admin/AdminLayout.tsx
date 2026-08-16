@@ -14,7 +14,7 @@ const links = [
 export function AdminRouteLayout() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const navigate = useNavigate();
-  const { user, isAdmin, loading } = useAuth();
+  const { user, isAdmin, loading, refresh } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [newCount, setNewCount] = useState(0);
   const isLogin = pathname === "/admin/login";
@@ -66,6 +66,7 @@ export function AdminRouteLayout() {
 
   const logout = async () => {
     await getSupabase().auth.signOut();
+    await refresh();
     navigate({ to: "/admin/login", search: {}, replace: true });
   };
 

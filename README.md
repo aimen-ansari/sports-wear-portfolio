@@ -18,8 +18,8 @@ Browser/build environment:
 ```text
 VITE_SUPABASE_URL=https://your-project-ref.supabase.co
 VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
-VITE_SITE_URL=https://www.rionapparels.com
-VITE_CONTACT_EMAIL=sales@rionapparels.com
+VITE_SITE_URL=https://rionapparels.site
+VITE_CONTACT_EMAIL=inquiry@rionapparels.site
 VITE_CONTACT_PHONE=923338600603
 VITE_CONTACT_ADDRESS=Sialkot, Punjab, Pakistan
 VITE_CONTACT_HOURS=Monday - Saturday, 09:00 - 18:00 (GMT+5)
@@ -29,14 +29,18 @@ VITE_INSTAGRAM_URL=
 VITE_LINKEDIN_URL=
 ```
 
+The repository includes `.env.production` with only the public values required by the deployed
+browser build. Keep local overrides in `.env.local`. Never add server credentials or email-provider
+keys to either browser environment file.
+
 Supabase Edge Function secrets:
 
 ```text
 RESEND_API_KEY=re_...
-INQUIRY_TO_EMAIL=sales@rionapparels.com
+INQUIRY_TO_EMAIL=inquiry@rionapparels.site
 INQUIRY_FROM_EMAIL=RION APPARELS <inquiries@your-verified-domain.com>
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-SITE_URL=https://www.rionapparels.com
+SITE_URL=https://rionapparels.site
 ```
 
 `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are provided automatically to hosted Supabase Edge
@@ -76,7 +80,7 @@ There is no public registration route.
 
 ```sql
 insert into public.admin_users (user_id, email)
-values ('AUTH_USER_UUID', 'admin@example.com');
+values ('AUTH_USER_UUID', 'admin@rionapparels.site');
 ```
 
 4. Sign in at `/admin/login`.
@@ -98,9 +102,9 @@ Set secrets and deploy:
 
 ```bash
 npx supabase secrets set RESEND_API_KEY=re_...
-npx supabase secrets set INQUIRY_TO_EMAIL=sales@rionapparels.com
+npx supabase secrets set INQUIRY_TO_EMAIL=inquiry@rionapparels.site
 npx supabase secrets set "INQUIRY_FROM_EMAIL=RION APPARELS <inquiries@your-verified-domain.com>"
-npx supabase secrets set SITE_URL=https://www.rionapparels.com
+npx supabase secrets set SITE_URL=https://rionapparels.site
 npx supabase functions deploy submit-inquiry
 ```
 

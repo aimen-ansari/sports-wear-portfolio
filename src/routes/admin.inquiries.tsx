@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Archive, ExternalLink, Mail, Search, Trash2, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AdminPageHeader } from "@/components/admin/AdminLayout";
 import {
   AdminEmpty,
@@ -29,17 +29,29 @@ function InquiriesAdmin() {
   const [selected, setSelected] = useState<InquiryRow>();
   const [deleting, setDeleting] = useState<InquiryRow>();
   const [busyDelete, setBusyDelete] = useState(false);
+  const [busyStatusIds, setBusyStatusIds] = useState<Set<string>>(() => new Set());
+  const statusMutations = useRef(new Set<string>());
+  const loadRequest = useRef(0);
   const [notice, setNotice] = useState<Notice>(null);
   const [page, setPage] = useState(1);
   const load = async (showLoading = true) => {
+    const request = ++loadRequest.current;
     if (showLoading) setLoading(true);
     const { data, error } = await getSupabase()
       .from("inquiries")
       .select("*")
       .order("created_at", { ascending: false });
-    if (showLoading) setLoading(false);
-    if (error) setNotice({ type: "error", message: error.message });
-    else setInquiries(data ?? []);
+    if (request !== loadRequest.current) return;
+    setLoading(false);
+    if (error) {
+      setNotice({ type: "error", message: error.message });
+    } else {
+      const next = data ?? [];
+      setInquiries(next);
+      setSelected((current) =>
+        current ? next.find((inquiry) => inquiry.id === current.id) : undefined,
+      );
+    }
   };
   useEffect(() => {
     void load();
@@ -73,15 +85,35 @@ function InquiriesAdmin() {
     setPage((current) => Math.min(current, pageCount));
   }, [pageCount]);
   const updateStatus = async (inquiry: InquiryRow, status: InquiryStatus) => {
-    const { error } = await getSupabase().from("inquiries").update({ status }).eq("id", inquiry.id);
-    if (error) {
-      setNotice({ type: "error", message: error.message });
-      return;
+    if (statusMutations.current.has(inquiry.id)) return;
+    statusMutations.current.add(inquiry.id);
+    setBusyStatusIds((ids) => new Set(ids).add(inquiry.id));
+    try {
+      const { data, error } = await getSupabase()
+        .from("inquiries")
+        .update({ status })
+        .eq("id", inquiry.id)
+        .select("*")
+        .single();
+      if (error) throw error;
+      loadRequest.current += 1;
+      setInquiries((items) => items.map((item) => (item.id === inquiry.id ? data : item)));
+      setSelected((current) => (current?.id === inquiry.id ? data : current));
+      setNotice({ type: "success", message: `Inquiry marked ${status}.` });
+      void load(false);
+    } catch (caught) {
+      setNotice({
+        type: "error",
+        message: caught instanceof Error ? caught.message : "Inquiry status could not be updated.",
+      });
+    } finally {
+      statusMutations.current.delete(inquiry.id);
+      setBusyStatusIds((ids) => {
+        const next = new Set(ids);
+        next.delete(inquiry.id);
+        return next;
+      });
     }
-    const updated = { ...inquiry, status };
-    setInquiries((items) => items.map((item) => (item.id === inquiry.id ? updated : item)));
-    setSelected((current) => (current?.id === inquiry.id ? updated : current));
-    setNotice({ type: "success", message: `Inquiry marked ${status}.` });
   };
   const open = (inquiry: InquiryRow) => {
     setSelected(inquiry);
@@ -92,7 +124,12 @@ function InquiriesAdmin() {
     setBusyDelete(true);
     const inquiry = deleting;
     const supabase = getSupabase();
-    const { error } = await supabase.from("inquiries").delete().eq("id", inquiry.id);
+    const { error } = await supabase
+      .from("inquiries")
+      .delete()
+      .eq("id", inquiry.id)
+      .select("id")
+      .single();
     let storageError: string | undefined;
     if (!error && inquiry.reference_file_url) {
       const result = await supabase.storage
@@ -104,6 +141,7 @@ function InquiriesAdmin() {
     setDeleting(undefined);
     if (error) setNotice({ type: "error", message: error.message });
     else {
+      loadRequest.current += 1;
       setInquiries((items) => items.filter((item) => item.id !== inquiry.id));
       if (selected?.id === inquiry.id) setSelected(undefined);
       setNotice({
@@ -112,15 +150,26 @@ function InquiriesAdmin() {
           ? `Inquiry deleted, but attachment cleanup failed: ${storageError}`
           : "Inquiry deleted.",
       });
+      void load(false);
     }
   };
   const openAttachment = async (inquiry: InquiryRow) => {
     if (!inquiry.reference_file_url) return;
+    const popup = window.open("about:blank", "_blank");
+    if (!popup) {
+      setNotice({ type: "error", message: "Allow pop-ups to open this attachment." });
+      return;
+    }
+    popup.opener = null;
     const { data, error } = await getSupabase()
       .storage.from("inquiry-attachments")
       .createSignedUrl(inquiry.reference_file_url, 60);
-    if (error) setNotice({ type: "error", message: error.message });
-    else window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+    if (error) {
+      popup.close();
+      setNotice({ type: "error", message: error.message });
+    } else {
+      popup.location.href = data.signedUrl;
+    }
   };
   return (
     <>
@@ -254,6 +303,7 @@ function InquiriesAdmin() {
       {selected && (
         <InquiryDetail
           inquiry={selected}
+          busyStatus={busyStatusIds.has(selected.id)}
           onClose={() => setSelected(undefined)}
           onStatus={(status) => void updateStatus(selected, status)}
           onAttachment={() => void openAttachment(selected)}
@@ -275,12 +325,14 @@ function InquiriesAdmin() {
 
 function InquiryDetail({
   inquiry,
+  busyStatus,
   onClose,
   onStatus,
   onAttachment,
   onDelete,
 }: {
   inquiry: InquiryRow;
+  busyStatus: boolean;
   onClose: () => void;
   onStatus: (status: InquiryStatus) => void;
   onAttachment: () => void;
@@ -369,7 +421,7 @@ function InquiryDetail({
                   key={status}
                   type="button"
                   onClick={() => onStatus(status)}
-                  disabled={inquiry.status === status}
+                  disabled={busyStatus || inquiry.status === status}
                   className="btn-base btn-outline py-2 disabled:bg-muted"
                 >
                   {status === "archived" && <Archive className="h-4 w-4" />}
@@ -381,6 +433,7 @@ function InquiryDetail({
           <button
             type="button"
             onClick={onDelete}
+            disabled={busyStatus}
             className="mt-8 inline-flex items-center gap-2 text-sm text-destructive"
           >
             <Trash2 className="h-4 w-4" /> Delete inquiry

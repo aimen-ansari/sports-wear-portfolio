@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Edit3, ImagePlus, Plus, Search, Trash2, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AdminPageHeader } from "@/components/admin/AdminLayout";
 import {
   AdminEmpty,
@@ -24,6 +24,7 @@ const slugify = (value: string) =>
     .trim()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
+const catalogImageTypes = new Set(["image/jpeg", "image/png", "image/webp", "image/avif"]);
 
 function CategoriesAdmin() {
   const [categories, setCategories] = useState<CategoryRow[]>([]);
@@ -32,6 +33,8 @@ function CategoriesAdmin() {
   const [editing, setEditing] = useState<CategoryRow | null | undefined>(undefined);
   const [deleting, setDeleting] = useState<CategoryRow>();
   const [busyDelete, setBusyDelete] = useState(false);
+  const [togglingCategoryIds, setTogglingCategoryIds] = useState<Set<string>>(() => new Set());
+  const togglingCategories = useRef(new Set<string>());
   const [notice, setNotice] = useState<Notice>(null);
   const load = async () => {
     setLoading(true);
@@ -67,7 +70,12 @@ function CategoriesAdmin() {
       });
       return;
     }
-    const { error } = await supabase.from("categories").delete().eq("id", category.id);
+    const { error } = await supabase
+      .from("categories")
+      .delete()
+      .eq("id", category.id)
+      .select("id")
+      .single();
     setBusyDelete(false);
     setDeleting(undefined);
     if (error) {
@@ -89,17 +97,33 @@ function CategoriesAdmin() {
     });
   };
   const toggle = async (category: CategoryRow) => {
-    const { error } = await getSupabase()
-      .from("categories")
-      .update({ is_active: !category.is_active })
-      .eq("id", category.id);
-    if (error) setNotice({ type: "error", message: error.message });
-    else
-      setCategories((items) =>
-        items.map((item) =>
-          item.id === category.id ? { ...item, is_active: !item.is_active } : item,
-        ),
-      );
+    if (togglingCategories.current.has(category.id)) return;
+    togglingCategories.current.add(category.id);
+    setTogglingCategoryIds((ids) => new Set(ids).add(category.id));
+    const target = !category.is_active;
+    try {
+      const { data, error } = await getSupabase()
+        .from("categories")
+        .update({ is_active: target })
+        .eq("id", category.id)
+        .select("*")
+        .single();
+      if (error) throw error;
+      setCategories((items) => items.map((item) => (item.id === category.id ? data : item)));
+      setNotice({ type: "success", message: `Category marked ${target ? "active" : "inactive"}.` });
+    } catch (caught) {
+      setNotice({
+        type: "error",
+        message: caught instanceof Error ? caught.message : "Category could not be updated.",
+      });
+    } finally {
+      togglingCategories.current.delete(category.id);
+      setTogglingCategoryIds((ids) => {
+        const next = new Set(ids);
+        next.delete(category.id);
+        return next;
+      });
+    }
   };
   const filtered = categories.filter((category) =>
     category.name.toLowerCase().includes(query.toLowerCase()),
@@ -157,6 +181,7 @@ function CategoriesAdmin() {
                 <button
                   type="button"
                   onClick={() => toggle(category)}
+                  disabled={togglingCategoryIds.has(category.id)}
                   className={`mr-auto px-2 py-1 text-xs font-medium ${category.is_active ? "bg-green-100 text-green-800" : "bg-muted text-muted-foreground"}`}
                 >
                   {category.is_active ? "Active" : "Inactive"}
@@ -242,7 +267,7 @@ function CategoryForm({
       setError("Use lowercase letters, numbers and hyphens in the slug.");
       return;
     }
-    if (file && (!file.type.startsWith("image/") || file.size > 10 * 1024 * 1024)) {
+    if (file && (!catalogImageTypes.has(file.type) || file.size > 10 * 1024 * 1024)) {
       setError("Use a JPG, PNG, WebP or AVIF image up to 10 MB.");
       return;
     }
@@ -271,8 +296,12 @@ function CategoryForm({
         is_active: active,
       };
       const result = category
-        ? await supabase.from("categories").update(payload).eq("id", id)
-        : await supabase.from("categories").insert({ id, ...payload });
+        ? await supabase.from("categories").update(payload).eq("id", id).select("id").single()
+        : await supabase
+            .from("categories")
+            .insert({ id, ...payload })
+            .select("id")
+            .single();
       if (result.error) throw result.error;
       let cleanupWarning: string | undefined;
       if (category?.image_url && category.image_url !== nextImage) {

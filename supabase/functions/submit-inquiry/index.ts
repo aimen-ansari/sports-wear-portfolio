@@ -310,10 +310,11 @@ Deno.serve(async (request) => {
 
   if (emailError) {
     console.error(emailError);
-    await supabase
+    const { error: statusError } = await supabase
       .from("inquiries")
       .update({ notification_status: "failed", notification_error: emailError })
       .eq("id", inquiryId);
+    if (statusError) console.error("Could not record notification failure:", statusError.message);
     return json(
       {
         ok: true,
@@ -325,9 +326,10 @@ Deno.serve(async (request) => {
     );
   }
 
-  await supabase
+  const { error: statusError } = await supabase
     .from("inquiries")
     .update({ notification_status: "sent", notification_error: null })
     .eq("id", inquiryId);
+  if (statusError) console.error("Could not record notification success:", statusError.message);
   return json({ ok: true, reference: inquiryId }, 200, corsHeaders);
 });

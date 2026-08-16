@@ -24,6 +24,7 @@ type Metrics = {
 
 function Dashboard() {
   const [metrics, setMetrics] = useState<Metrics>();
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   useEffect(() => {
     const supabase = getSupabase();
@@ -32,12 +33,15 @@ function Dashboard() {
         supabase.from("products").select("id", { count: "exact", head: true }),
         supabase
           .from("products")
-          .select("id", { count: "exact", head: true })
-          .eq("is_active", true),
+          .select("id,categories!inner(id)", { count: "exact", head: true })
+          .eq("is_active", true)
+          .eq("categories.is_active", true),
         supabase
           .from("products")
-          .select("id", { count: "exact", head: true })
-          .eq("is_featured", true),
+          .select("id,categories!inner(id)", { count: "exact", head: true })
+          .eq("is_active", true)
+          .eq("is_featured", true)
+          .eq("categories.is_active", true),
         supabase.from("categories").select("id", { count: "exact", head: true }),
         supabase.from("inquiries").select("id", { count: "exact", head: true }).eq("status", "new"),
         supabase.from("inquiries").select("*").order("created_at", { ascending: false }).limit(6),
@@ -51,6 +55,7 @@ function Dashboard() {
         recent.error,
       ].find(Boolean);
       if (firstError) throw firstError;
+      setError("");
       setMetrics({
         totalProducts: total.count ?? 0,
         activeProducts: active.count ?? 0,
@@ -59,15 +64,19 @@ function Dashboard() {
         newInquiries: inquiries.count ?? 0,
         recent: recent.data ?? [],
       });
+      setLoading(false);
     };
-    load().catch((caught: unknown) => {
-      console.error(caught);
-      setError("Dashboard metrics could not be loaded.");
-    });
+    const refresh = () =>
+      load().catch((caught: unknown) => {
+        console.error(caught);
+        setLoading(false);
+        setError("Dashboard metrics could not be loaded.");
+      });
+    void refresh();
     const channel = supabase
       .channel("admin-dashboard-inquiries")
       .on("postgres_changes", { event: "*", schema: "public", table: "inquiries" }, () => {
-        void load();
+        void refresh();
       })
       .subscribe();
     return () => {
@@ -104,9 +113,9 @@ function Dashboard() {
           {error}
         </p>
       )}
-      {!metrics ? (
+      {loading ? (
         <LoadingRows />
-      ) : (
+      ) : metrics ? (
         <>
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
             {cards.map(({ label, value, Icon }) => (
@@ -159,7 +168,7 @@ function Dashboard() {
             )}
           </section>
         </>
-      )}
+      ) : null}
     </>
   );
 }
