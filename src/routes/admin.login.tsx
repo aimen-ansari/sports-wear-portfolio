@@ -98,7 +98,7 @@ function AdminLogin() {
     <div className="grid min-h-screen bg-surface lg:grid-cols-[1fr_1.1fr]">
       <div className="relative hidden overflow-hidden bg-primary p-12 text-primary-foreground lg:flex lg:flex-col lg:justify-between">
         <div className="absolute inset-y-0 right-0 w-1 bg-accent" />
-        <img src="/logo.png" alt="RION APPARELS" className="h-16 w-52 object-cover" />
+        <img src="/adminlogo.png" alt="RION APPARELS Admin" className="h-16 w-52 object-cover" />
         <div className="relative max-w-md">
           <p className="eyebrow text-white/55">Secure administration</p>
           <h1 className="mt-4 text-4xl leading-tight">
@@ -113,9 +113,9 @@ function AdminLogin() {
       <div className="flex items-center justify-center p-5 sm:p-10">
         <div className="w-full max-w-md">
           <img
-            src="/logo.png"
-            alt="RION APPARELS"
-            className="mx-auto mb-10 h-16 w-52 object-cover lg:hidden"
+            src="/adminlogo.png"
+            alt="RION APPARELS Admin"
+            className="mx-auto mb-10 h-16 w-52 bg-primary object-cover lg:hidden"
           />
           <p className="eyebrow">Admin portal</p>
           <h2 className="mt-3 text-3xl">
