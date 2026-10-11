@@ -19,6 +19,7 @@ import { Route as QualityRouteImport } from './routes/quality'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
+import { Route as AdminImportRouteImport } from './routes/admin.import'
 import { Route as AdminInquiriesRouteImport } from './routes/admin.inquiries'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
 import { Route as AdminProductsRouteImport } from './routes/admin.products'
@@ -75,6 +76,11 @@ const AdminDashboardRoute = AdminDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminImportRoute = AdminImportRouteImport.update({
+  id: '/import',
+  path: '/import',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminInquiriesRoute = AdminInquiriesRouteImport.update({
   id: '/inquiries',
   path: '/inquiries',
@@ -112,6 +118,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/import': typeof AdminImportRoute
   '/admin/inquiries': typeof AdminInquiriesRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/products': typeof AdminProductsRoute
@@ -129,6 +136,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/import': typeof AdminImportRoute
   '/admin/inquiries': typeof AdminInquiriesRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/products': typeof AdminProductsRoute
@@ -147,6 +155,7 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/import': typeof AdminImportRoute
   '/admin/inquiries': typeof AdminInquiriesRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/products': typeof AdminProductsRoute
@@ -166,6 +175,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/admin/categories'
     | '/admin/dashboard'
+    | '/admin/import'
     | '/admin/inquiries'
     | '/admin/login'
     | '/admin/products'
@@ -183,6 +193,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/admin/categories'
     | '/admin/dashboard'
+    | '/admin/import'
     | '/admin/inquiries'
     | '/admin/login'
     | '/admin/products'
@@ -200,6 +211,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/admin/categories'
     | '/admin/dashboard'
+    | '/admin/import'
     | '/admin/inquiries'
     | '/admin/login'
     | '/admin/products'
@@ -292,6 +304,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminDashboardRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/import': {
+      id: '/admin/import'
+      path: '/import'
+      fullPath: '/admin/import'
+      preLoaderRoute: typeof AdminImportRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/inquiries': {
       id: '/admin/inquiries'
       path: '/inquiries'
@@ -333,6 +352,7 @@ declare module '@tanstack/react-router' {
 interface AdminRouteChildren {
   AdminCategoriesRoute: typeof AdminCategoriesRoute
   AdminDashboardRoute: typeof AdminDashboardRoute
+  AdminImportRoute: typeof AdminImportRoute
   AdminInquiriesRoute: typeof AdminInquiriesRoute
   AdminLoginRoute: typeof AdminLoginRoute
   AdminProductsRoute: typeof AdminProductsRoute
@@ -341,6 +361,7 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminCategoriesRoute: AdminCategoriesRoute,
   AdminDashboardRoute: AdminDashboardRoute,
+  AdminImportRoute: AdminImportRoute,
   AdminInquiriesRoute: AdminInquiriesRoute,
   AdminLoginRoute: AdminLoginRoute,
   AdminProductsRoute: AdminProductsRoute,

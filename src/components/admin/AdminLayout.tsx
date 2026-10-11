@@ -1,5 +1,14 @@
 import { Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
-import { FolderTree, LayoutDashboard, LogOut, Menu, MessageSquare, Package, X } from "lucide-react";
+import {
+  Download,
+  FolderTree,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  MessageSquare,
+  Package,
+  X,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getSupabase } from "@/lib/supabase";
@@ -8,6 +17,7 @@ const links = [
   { label: "Overview", to: "/admin/dashboard", Icon: LayoutDashboard },
   { label: "Products", to: "/admin/products", Icon: Package },
   { label: "Categories", to: "/admin/categories", Icon: FolderTree },
+  { label: "Import", to: "/admin/import", Icon: Download },
   { label: "Inquiries", to: "/admin/inquiries", Icon: MessageSquare },
 ] as const;
 
