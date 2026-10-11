@@ -41,6 +41,15 @@ export const INSTAGRAM_IMPORT_SOURCE = "https://www.instagram.com/rion_apparel/"
 
 export const instagramImagePath = (code: string) => `/instagram/${code}.jpg`;
 
+/**
+ * Bundled banner for an imported category (used as a fallback until a banner
+ * is set on the category row in the database).
+ */
+export const instagramCategoryImage = (slug: string): string | undefined => {
+  const category = instagramImportCategories.find((entry) => entry.slug === slug);
+  return category?.imageCode ? instagramImagePath(category.imageCode) : undefined;
+};
+
 export const instagramImportCategories: InstagramImportCategory[] = [
   {
     name: "Work Trousers",

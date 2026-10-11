@@ -5,6 +5,7 @@ import factoryImage from "@/assets/factory.jpg";
 import fabricsImage from "@/assets/fabrics.jpg";
 import { industries } from "@/data/catalog";
 import { CategoryCard } from "@/components/site/CategoryCard";
+import { instagramCategoryImage } from "@/data/instagram-import";
 import { ProductCard } from "@/components/site/ProductCard";
 import { CatalogMessage } from "@/components/site/CatalogStates";
 import { SectionHeading } from "@/components/site/SectionHeading";
@@ -153,7 +154,11 @@ function Home() {
             ) : categories.length ? (
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 {categories.map((c) => (
-                  <CategoryCard key={c.id} category={c} />
+                  <CategoryCard
+                    key={c.id}
+                    category={c}
+                    fallbackImage={instagramCategoryImage(c.slug)}
+                  />
                 ))}
               </div>
             ) : (

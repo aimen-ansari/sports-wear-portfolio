@@ -2,7 +2,14 @@ import { Link } from "@tanstack/react-router";
 import { ArrowRight, ImageIcon } from "lucide-react";
 import type { CategoryRow } from "@/lib/database.types";
 
-export function CategoryCard({ category }: { category: CategoryRow }) {
+export function CategoryCard({
+  category,
+  fallbackImage,
+}: {
+  category: CategoryRow;
+  fallbackImage?: string | undefined;
+}) {
+  const image = category.image_url ?? fallbackImage;
   return (
     <Link
       to="/products"
@@ -15,9 +22,9 @@ export function CategoryCard({ category }: { category: CategoryRow }) {
       className="group block overflow-hidden border border-border bg-card transition-shadow duration-300 hover:shadow-[var(--shadow-card)]"
     >
       <div className="overflow-hidden bg-surface">
-        {category.image_url ? (
+        {image ? (
           <img
-            src={category.image_url}
+            src={image}
             alt={`${category.name} manufactured by RION APPARELS`}
             width={1000}
             height={1250}
