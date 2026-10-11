@@ -24,11 +24,16 @@ export const Route = createFileRoute("/admin/import")({
 
 type ImportSummary = {
   categoriesCreated: number;
+  categoryImagesUploaded: number;
   productsCreated: number;
   productsSkipped: number;
   imagesUploaded: number;
   warnings: string[];
 };
+
+const categoryMetaBySlug = new Map(
+  instagramImportCategories.map((category) => [category.slug, category]),
+);
 
 const titleFromSlug = (slug: string) =>
   slug
@@ -41,6 +46,9 @@ function ImportAdmin() {
     () => new Set(instagramImportProducts.map((product) => product.code)),
   );
   const [existingCategorySlugs, setExistingCategorySlugs] = useState<Set<string>>(new Set());
+  const [existingCategoryImages, setExistingCategoryImages] = useState<Map<string, string>>(
+    new Map(),
+  );
   const [existingProductKeys, setExistingProductKeys] = useState<Set<string>>(new Set());
   const [loadingExisting, setLoadingExisting] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -51,10 +59,18 @@ function ImportAdmin() {
     setLoadingExisting(true);
     const supabase = getSupabase();
     const [categoryResult, productResult] = await Promise.all([
-      supabase.from("categories").select("slug"),
+      supabase.from("categories").select("slug,image_url"),
       supabase.from("products").select("slug,sku"),
     ]);
-    setExistingCategorySlugs(new Set((categoryResult.data ?? []).map((row) => row.slug)));
+    const categoryRows = categoryResult.data ?? [];
+    setExistingCategorySlugs(new Set(categoryRows.map((row) => row.slug)));
+    setExistingCategoryImages(
+      new Map(
+        categoryRows
+          .filter((row) => Boolean(row.image_url))
+          .map((row) => [row.slug, row.image_url as string]),
+      ),
+    );
     const keys = new Set<string>();
     for (const row of productResult.data ?? []) {
       keys.add(`slug:${row.slug}`);
@@ -115,6 +131,7 @@ function ImportAdmin() {
     const supabase = getSupabase();
     const warnings: string[] = [];
     let categoriesCreated = 0;
+    let categoryImagesUploaded = 0;
     let productsCreated = 0;
     let productsSkipped = 0;
     let imagesUploaded = 0;
@@ -147,6 +164,38 @@ function ImportAdmin() {
         }
         categoryBySlug.set(slug, data);
         categoriesCreated += 1;
+      }
+
+      for (const slug of new Set(chosen.map((product) => product.categorySlug))) {
+        const category = categoryBySlug.get(slug);
+        const meta = categoryMetaBySlug.get(slug);
+        if (!category || !meta?.imageCode) continue;
+        if (category.image_url) continue;
+        try {
+          const response = await fetch(instagramImagePath(meta.imageCode));
+          if (!response.ok) throw new Error(`image request failed (${response.status})`);
+          const blob = await response.blob();
+          const path = `${category.id}/${crypto.randomUUID()}.jpg`;
+          const { error: uploadError } = await supabase.storage
+            .from("category-images")
+            .upload(path, blob, { contentType: blob.type || "image/jpeg" });
+          if (uploadError) throw uploadError;
+          const imageUrl = supabase.storage.from("category-images").getPublicUrl(path)
+            .data.publicUrl;
+          const { error: updateError } = await supabase
+            .from("categories")
+            .update({ image_url: imageUrl })
+            .eq("id", category.id);
+          if (updateError) throw updateError;
+          category.image_url = imageUrl;
+          categoryImagesUploaded += 1;
+        } catch (caught) {
+          warnings.push(
+            `Category "${meta.name}" banner could not be uploaded (${
+              caught instanceof Error ? caught.message : "unknown error"
+            }).`,
+          );
+        }
       }
 
       const { data: existingProducts, error: productError } = await supabase
@@ -218,6 +267,7 @@ function ImportAdmin() {
 
       setSummary({
         categoriesCreated,
+        categoryImagesUploaded,
         productsCreated,
         productsSkipped,
         imagesUploaded,
@@ -307,56 +357,78 @@ function ImportAdmin() {
             </button>
           </div>
           <div className="space-y-8">
-            {groups.map(([slug, products]) => (
-              <section key={slug}>
-                <div className="mb-3 flex items-center gap-3">
-                  <h2 className="text-lg">{titleFromSlug(slug)}</h2>
-                  <span
-                    className={`px-2 py-1 text-xs font-medium ${
-                      existingCategorySlugs.has(slug)
-                        ? "bg-muted text-muted-foreground"
-                        : "bg-accent/15 text-accent"
-                    }`}
-                  >
-                    {existingCategorySlugs.has(slug) ? "Existing category" : "New category"}
-                  </span>
-                </div>
-                <div className="divide-y divide-border border border-border bg-card">
-                  {products.map((product) => {
-                    const imported = isImported(product);
-                    return (
-                      <label
-                        key={product.code}
-                        className="flex cursor-pointer items-center gap-4 p-4"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={selected.has(product.code)}
-                          onChange={() => toggle(product.code)}
-                          className="h-4 w-4 accent-[var(--color-accent)]"
-                        />
-                        <img
-                          src={instagramImagePath(product.code)}
-                          alt=""
-                          className="h-16 w-14 shrink-0 border border-border object-cover"
-                        />
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate font-medium">{product.name}</p>
-                          <p className="mt-1 font-mono text-xs text-muted-foreground">
-                            {product.sku} · /{product.slug}
-                          </p>
-                        </div>
-                        {imported && (
-                          <span className="flex shrink-0 items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                            <CheckCircle2 className="h-4 w-4 text-accent" /> In catalog
-                          </span>
-                        )}
-                      </label>
-                    );
-                  })}
-                </div>
-              </section>
-            ))}
+            {groups.map(([slug, products]) => {
+              const meta = categoryMetaBySlug.get(slug);
+              const existingImage = existingCategoryImages.get(slug);
+              const bannerSrc =
+                existingImage ?? (meta?.imageCode ? instagramImagePath(meta.imageCode) : undefined);
+              return (
+                <section key={slug}>
+                  <div className="mb-3 flex items-center gap-3">
+                    {bannerSrc && (
+                      <img
+                        src={bannerSrc}
+                        alt=""
+                        className="h-11 w-11 shrink-0 border border-border object-cover"
+                      />
+                    )}
+                    <div className="min-w-0">
+                      <h2 className="text-lg">{titleFromSlug(slug)}</h2>
+                      <p className="text-xs text-muted-foreground">
+                        {existingImage
+                          ? "Banner already set"
+                          : meta?.imageCode
+                            ? "Representative banner added on import"
+                            : "No banner available"}
+                      </p>
+                    </div>
+                    <span
+                      className={`ml-auto shrink-0 px-2 py-1 text-xs font-medium ${
+                        existingCategorySlugs.has(slug)
+                          ? "bg-muted text-muted-foreground"
+                          : "bg-accent/15 text-accent"
+                      }`}
+                    >
+                      {existingCategorySlugs.has(slug) ? "Existing category" : "New category"}
+                    </span>
+                  </div>
+                  <div className="divide-y divide-border border border-border bg-card">
+                    {products.map((product) => {
+                      const imported = isImported(product);
+                      return (
+                        <label
+                          key={product.code}
+                          className="flex cursor-pointer items-center gap-4 p-4"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selected.has(product.code)}
+                            onChange={() => toggle(product.code)}
+                            className="h-4 w-4 accent-[var(--color-accent)]"
+                          />
+                          <img
+                            src={instagramImagePath(product.code)}
+                            alt=""
+                            className="h-16 w-14 shrink-0 border border-border object-cover"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate font-medium">{product.name}</p>
+                            <p className="mt-1 font-mono text-xs text-muted-foreground">
+                              {product.sku} · /{product.slug}
+                            </p>
+                          </div>
+                          {imported && (
+                            <span className="flex shrink-0 items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                              <CheckCircle2 className="h-4 w-4 text-accent" /> In catalog
+                            </span>
+                          )}
+                        </label>
+                      );
+                    })}
+                  </div>
+                </section>
+              );
+            })}
           </div>
         </>
       )}
@@ -365,6 +437,7 @@ function ImportAdmin() {
           <h2 className="text-base">Import summary</h2>
           <ul className="mt-3 space-y-1 text-muted-foreground">
             <li>{summary.categoriesCreated} categories created</li>
+            <li>{summary.categoryImagesUploaded} category banners uploaded</li>
             <li>{summary.productsCreated} products created</li>
             <li>{summary.productsSkipped} products skipped (already present)</li>
             <li>{summary.imagesUploaded} images uploaded</li>

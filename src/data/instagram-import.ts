@@ -16,6 +16,8 @@ export type InstagramImportCategory = {
   slug: string;
   description: string;
   displayOrder: number;
+  /** Instagram post code whose photo is used as the category banner. */
+  imageCode: string;
 };
 
 export type InstagramImportProduct = {
@@ -41,10 +43,19 @@ export const instagramImagePath = (code: string) => `/instagram/${code}.jpg`;
 
 export const instagramImportCategories: InstagramImportCategory[] = [
   {
+    name: "Work Trousers",
+    slug: "work-trousers",
+    description: "Durable work trousers built for demanding industrial and field environments.",
+    displayOrder: 20,
+    // Only fills the banner when this category has no image yet.
+    imageCode: "Dcl4ZtVtFuK",
+  },
+  {
     name: "Workwear",
     slug: "workwear",
     description: "Everyday workwear and uniform programmes made to buyer specification.",
     displayOrder: 90,
+    imageCode: "DLVQrwbtfK1",
   },
   {
     name: "Tactical Trousers",
@@ -52,24 +63,28 @@ export const instagramImportCategories: InstagramImportCategory[] = [
     description:
       "Heavy-duty tactical pants with reinforced knees, knee-pad pockets and multi-pocket storage.",
     displayOrder: 100,
+    imageCode: "Dd_9a7iuBd-",
   },
   {
     name: "Tactical Shorts",
     slug: "tactical-shorts",
     description: "Durable tactical shorts for warm-weather site and field work.",
     displayOrder: 110,
+    imageCode: "DM-bP3yNK3m",
   },
   {
     name: "Polo Shirts",
     slug: "polo-shirts",
     description: "Breathable custom polo shirts for corporate and field teams.",
     displayOrder: 120,
+    imageCode: "DdCN1tpDo7v",
   },
   {
     name: "Bags & Packaging",
     slug: "bags-packaging",
     description: "Custom-printed tote bags and branded packaging produced in bulk.",
     displayOrder: 130,
+    imageCode: "DdWp3SHgIdo",
   },
 ];
 
